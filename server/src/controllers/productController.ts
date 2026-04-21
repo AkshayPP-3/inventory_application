@@ -64,5 +64,49 @@ export const getProduct = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
-export const updateProduct = async (_: Request, res: Response) => {};
+export const updateProduct = async (req: Request, res: Response) => {
+    const id = Number.parseInt(String(req.params.id ?? ""), 10);
+
+    if (!Number.isInteger(id) || id <= 0) {
+        res.status(400).json({ message: "Invalid product id" });
+        return;
+    }
+
+    const { name, price, image } = req.body ?? {};
+
+    const parsedName = typeof name === "string" ? name.trim() : undefined;
+    const parsedImage = typeof image === "string" ? image.trim() : undefined;
+    const parsedPrice = typeof price === "number" || typeof price === "string"
+        ? Number(price)
+        : undefined;
+
+    const hasName = parsedName !== undefined;
+    const hasImage = parsedImage !== undefined;
+    const hasPrice = parsedPrice !== undefined;
+
+    if (!hasName && !hasImage && !hasPrice) {
+        res.status(400).json({ message: "Provide at least one field: name, price, or image" });
+        return;
+    }
+
+    if ((hasName && !parsedName) || (hasImage && !parsedImage) || (hasPrice && (!Number.isFinite(parsedPrice) || parsedPrice < 0))) {
+        res.status(400).json({ message: "Invalid name, image, or price" });
+        return;
+    }
+
+    try {
+        const updatedProduct = await prisma.product.update({
+            where: { id },
+            data: {
+                ...(hasName ? { name: parsedName } : {}),
+                ...(hasImage ? { image: parsedImage } : {}),
+                ...(hasPrice ? { price: parsedPrice } : {}),
+            },
+        });
+
+        res.status(200).json(updatedProduct);
+    } catch {
+        res.status(404).json({ message: "Product not found" });
+    }
+};
 export const deleteProduct = async (_: Request, res: Response) => {};
