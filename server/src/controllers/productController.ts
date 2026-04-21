@@ -41,6 +41,28 @@ export const createProduct = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
-export const getProduct = async (_: Request, res: Response) => {};
+export const getProduct = async (req: Request, res: Response) => {
+    const id = Number.parseInt(String(req.params.id ?? ""), 10);
+
+    if (!Number.isInteger(id) || id <= 0) {
+        res.status(400).json({ message: "Invalid product id" });
+        return;
+    }
+
+    try {
+        const product = await prisma.product.findUnique({
+            where: { id },
+        });
+
+        if (!product) {
+            res.status(404).json({ message: "Product not found" });
+            return;
+        }
+
+        res.status(200).json(product);
+    } catch {
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
 export const updateProduct = async (_: Request, res: Response) => {};
 export const deleteProduct = async (_: Request, res: Response) => {};
