@@ -109,4 +109,21 @@ export const updateProduct = async (req: Request, res: Response) => {
         res.status(404).json({ message: "Product not found" });
     }
 };
-export const deleteProduct = async (_: Request, res: Response) => {};
+export const deleteProduct = async (req: Request, res: Response) => {
+    const id = Number.parseInt(String(req.params.id ?? ""), 10);
+
+    if (!Number.isInteger(id) || id <= 0) {
+        res.status(400).json({ message: "Invalid product id" });
+        return;
+    }
+
+    try {
+        await prisma.product.delete({
+            where: { id },
+        });
+
+        res.status(204).send();
+    } catch {
+        res.status(404).json({ message: "Product not found" });
+    }
+};
