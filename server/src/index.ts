@@ -3,8 +3,9 @@ import helmet from "helmet";
 import morgan from "morgan";
 import cors from "cors";
 import dotenv from "dotenv"
-
+import {aj} from "./lib/arcjet"
 import productRoutes from "./routes/productRoutes.js";
+import { error } from "node:console";
 
 dotenv.config();
 
@@ -15,6 +16,29 @@ app.use(express.json());
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(cors());
+
+app.use(async(req,res,next)=>{
+    try{
+        const decision = await aj.protect(req,{
+            requested:1
+        })
+        if(decision.isDenied()){
+            if(decision.reason.isRateLimit()){
+                res.status(429).json({error:"Too many requests"})
+            }
+            else if(decision.reason.isBot()){
+                res.status(403).json({error:"Bot access denied"})
+            }
+            else{
+                res.status(403).json({error:"forbidden"});
+            }
+            return
+        }
+        next()
+    }catch(error){
+        res.status(500).json({success: false, message: "Internal server error"});
+    }
+})
 
 app.use("/api/products", productRoutes);
 
