@@ -5,7 +5,8 @@ import cors from "cors";
 import dotenv from "dotenv"
 import {aj} from "./lib/arcjet"
 import productRoutes from "./routes/productRoutes.js";
-import { error } from "node:console";
+import swaggerUi from "swagger-ui-express";
+import { specs } from "./docs/swagger";
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ app.use(async(req,res,next)=>{
 })
 
 app.use("/api/products", productRoutes);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 app.listen(PORT,()=>{
     console.log(`server is running on ${PORT}`)
