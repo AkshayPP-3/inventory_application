@@ -6,13 +6,27 @@ import { signToken } from "../utils/jwt";
 export const register = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  const hashed = await bcrypt.hash(password, 10);
+  try {
+    const hashed = await bcrypt.hash(password, 10);
 
-  const user = await prisma.user.create({
-    data: { email, password: hashed },
-  });
+    const user = await prisma.user.create({
+      data: { email, password: hashed },
+    });
 
-  res.json({ token: signToken(user.id) });
+    res.json({ token: signToken(user.id) });
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: string }).code === "P2002"
+    ) {
+      res.status(409).json({ message: "Email already exists" });
+      return;
+    }
+
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 export const login = async (req: Request, res: Response) => {
