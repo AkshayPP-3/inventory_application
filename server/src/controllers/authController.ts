@@ -4,7 +4,12 @@ import { prisma } from "../lib/prisma";
 import { signToken } from "../utils/jwt";
 
 export const register = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body ?? {};
+
+  if (typeof email !== "string" || typeof password !== "string") {
+    res.status(400).json({ message: "Email and password are required" });
+    return;
+  }
 
   try {
     const hashed = await bcrypt.hash(password, 10);
@@ -30,7 +35,12 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body ?? {};
+
+  if (typeof email !== "string" || typeof password !== "string") {
+    res.status(400).json({ message: "Email and password are required" });
+    return;
+  }
 
   const user = await prisma.user.findUnique({ where: { email } });
 

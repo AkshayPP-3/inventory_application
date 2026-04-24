@@ -6,6 +6,7 @@ import {
     getProducts,
     updateProduct
     } from "../controllers/productController.js";
+import { protect } from "../middleware/auth";
 
  
 const router = express.Router();
@@ -65,7 +66,7 @@ router.get("/:id", getProduct);
  *       201:
  *         description: Created
  */
-router.post("/", createProduct);
+router.post("/", protect, createProduct);
 
 
 
@@ -83,7 +84,7 @@ router.post("/", createProduct);
  *       200:
  *         description: OK
  */
-router.put("/:id", updateProduct);
+router.put("/:id", protect, updateProduct);
 
 
 
@@ -101,7 +102,7 @@ router.put("/:id", updateProduct);
  *       200:
  *         description: OK
  */
-router.delete("/:id", deleteProduct);
+router.delete("/:id", protect, deleteProduct);
 
 
 
