@@ -7,6 +7,8 @@ import {aj} from "./lib/arcjet"
 import productRoutes from "./routes/productRoutes.js";
 import swaggerUi from "swagger-ui-express";
 import { specs } from "./docs/swagger";
+import passport from "./config/passport";
+import authRoutes from "./routes/authRoutes";
 
 dotenv.config();
 
@@ -17,6 +19,8 @@ app.use(express.json());
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(cors());
+app.use(passport.initialize());
+app.use("/api/auth", authRoutes);
 
 app.use(async(req,res,next)=>{
     try{
