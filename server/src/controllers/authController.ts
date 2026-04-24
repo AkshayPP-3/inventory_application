@@ -1,8 +1,9 @@
 import bcrypt from "bcryptjs";
+import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { signToken } from "../utils/jwt";
 
-export const register = async (req: { body: { email: any; password: any; }; }, res: { json: (arg0: { token: string; }) => void; }) => {
+export const register = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   const hashed = await bcrypt.hash(password, 10);
@@ -14,7 +15,7 @@ export const register = async (req: { body: { email: any; password: any; }; }, r
   res.json({ token: signToken(user.id) });
 };
 
-export const login = async (req: { body: { email: any; password: any; }; }, res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { message: string; }): any; new(): any; }; }; json: (arg0: { token: string; }) => void; }) => {
+export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   const user = await prisma.user.findUnique({ where: { email } });
