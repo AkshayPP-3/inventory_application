@@ -7,12 +7,9 @@ export const protect = (req: { headers: { authorization: any; }; userId: any; },
     return res.status(401).json({ message: "No token" });
 
   const token = header.split(" ")[1];
-  const secret = process.env.JWT_SECRET;
-
-  if (!secret) return res.status(500).json({ message: "JWT secret not configured" });
 
   try {
-    const decoded = jwt.verify(token, secret) as jwt.JwtPayload;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = decoded.userId;
     next();
   } catch {
