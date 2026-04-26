@@ -45,12 +45,12 @@ export const login = async (req: Request, res: Response) => {
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user || !user.password)
-    return res.status(400).json({ message: "Invalid" });
+    return res.status(400).json({ message: "Invalid email or password" });
 
   const ok = await bcrypt.compare(password, user.password);
 
   if (!ok)
-    return res.status(400).json({ message: "Invalid" });
+    return res.status(400).json({ message: "Invalid email or password" });
 
   res.json({ token: signToken(user.id) });
 };
