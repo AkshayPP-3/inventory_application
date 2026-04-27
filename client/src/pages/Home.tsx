@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 
+type HomeProps = {
+  onViewProducts: () => void;
+};
+
 interface FeaturePill {
   label: string;
   color: string;
@@ -44,7 +48,7 @@ const previewCards: PreviewCard[] = [
   },
 ];
 
-export default function HomePage() {
+export default function HomePage({ onViewProducts }: HomeProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -120,7 +124,7 @@ export default function HomePage() {
         }`}
       >
         <button
-          onClick={() => {/* navigate to products */}}
+          onClick={onViewProducts}
           className="group inline-flex items-center gap-2 bg-stone-900 text-lime-300 border-2 border-stone-900 font-medium text-base px-8 py-3.5 rounded-full cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:scale-105 hover:shadow-2xl active:scale-95"
         >
           View Products
