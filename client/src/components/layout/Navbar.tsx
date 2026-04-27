@@ -1,8 +1,8 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 
 type NavbarProps = {
-	currentPage: "home" | "products";
-	onNavigate: (page: "home" | "products") => void;
+	currentPage: "home" | "products" | "categories";
+	onNavigate: (page: "home" | "products" | "categories") => void;
 };
 
 export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
@@ -85,7 +85,7 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 		setIsThemeMenuOpen(false);
 	};
 
-	const navLinkClass = (page: "home" | "products") =>
+	const navLinkClass = (page: "home" | "products" | "categories") =>
 		`px-2 py-1 text-sm font-medium transition ${
 			currentPage === page
 				? "text-black"
@@ -123,7 +123,11 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 						</button>
 					</li>
 					<li>
-						<button type="button" className="px-2 py-1 text-sm font-medium text-stone-500 hover:text-black">
+						<button
+							type="button"
+							onClick={() => onNavigate("categories")}
+							className={navLinkClass("categories")}
+						>
 							Categories
 						</button>
 					</li>
