@@ -1,6 +1,14 @@
+import { useState } from "react";
 import { CircleFadingArrowUpIcon } from "lucide-react";
+import AddProductModal from "../components/modals/AddProductModal";
 
 export default function Products() {
+	const [isModalOpen, setIsModalOpen] = useState(false);
+
+	const handleProductAdded = () => {
+		// Product added successfully, modal will close
+	};
+
 	return (
 		<main className="relative min-h-screen overflow-hidden bg-amber-50 flex flex-col items-center justify-center text-center px-6 py-24">
 
@@ -23,6 +31,7 @@ export default function Products() {
 
 				<button
 					type="button"
+					onClick={() => setIsModalOpen(true)}
 					className="mt-5 inline-flex items-center gap-2 rounded-full border border-black px-5 py-3 text-sm font-semibold text-black transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/20 hover:shadow-md"
 				>
 					<CircleFadingArrowUpIcon className="h-4 w-4" />
@@ -34,6 +43,12 @@ export default function Products() {
 					new product using the button above when you are ready.
 				</p>
 			</section>
+
+			<AddProductModal
+				isOpen={isModalOpen}
+				onClose={() => setIsModalOpen(false)}
+				onProductAdded={handleProductAdded}
+			/>
 		</main>
 	);
 }

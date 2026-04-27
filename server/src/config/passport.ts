@@ -22,7 +22,7 @@ passport.use(new GoogleStrategy(
       });
     }
 
-    done(null, { token: signToken(user.id) });
+    done(null, { token: signToken(user.id), email: user.email });
   }
 ));
 
@@ -33,7 +33,7 @@ passport.use(new GitHubStrategy(
     clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     callbackURL: "/api/auth/github/callback",
   },
-  async (_a: any, _b: any, profile: { emails: { value: string; }[]; username: any; }, done: (arg0: null, arg1: { token: string; }) => void) => {
+  async (_a: any, _b: any, profile: { emails: { value: string; }[]; username: any; }, done: (arg0: null, arg1: { token: string; email: string; }) => void) => {
     const email =
       profile.emails?.[0]?.value ||
       `${profile.username}@github.com`;
@@ -46,7 +46,7 @@ passport.use(new GitHubStrategy(
       });
     }
 
-    done(null, { token: signToken(user.id) });
+    done(null, { token: signToken(user.id), email: user.email });
   }
 ));
 

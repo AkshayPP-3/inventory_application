@@ -14,7 +14,14 @@ router.get("/google",
 
 router.get("/google/callback",
   passport.authenticate("google", { session: false }),
-  (req, res) => res.json(req.user)
+  (req, res) => {
+    const user = req.user as { token: string; email: string };
+    if (user && user.token) {
+      res.redirect(`http://localhost:5173/?token=${user.token}&email=${encodeURIComponent(user.email)}`);
+    } else {
+      res.redirect("http://localhost:5173/?error=auth_failed");
+    }
+  }
 );
 
 /* GITHUB */
@@ -24,7 +31,14 @@ router.get("/github",
 
 router.get("/github/callback",
   passport.authenticate("github", { session: false }),
-  (req, res) => res.json(req.user)
+  (req, res) => {
+    const user = req.user as { token: string; email: string };
+    if (user && user.token) {
+      res.redirect(`http://localhost:5173/?token=${user.token}&email=${encodeURIComponent(user.email)}`);
+    } else {
+      res.redirect("http://localhost:5173/?error=auth_failed");
+    }
+  }
 );
 
 export default router;

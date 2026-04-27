@@ -1,4 +1,6 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import SignInModal from "../modals/SignInModal";
+import SignUpModal from "../modals/SignUpModal";
 
 type NavbarProps = {
 	currentPage: "home" | "products" | "categories";
@@ -10,6 +12,8 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [currentTheme, setCurrentTheme] = useState("light");
 	const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+	const [isSignInOpen, setIsSignInOpen] = useState(false);
+	const [isSignUpOpen, setIsSignUpOpen] = useState(false);
 	const themeMenuRef = useRef<HTMLDivElement | null>(null);
 
 	const daisyThemes = [
@@ -52,6 +56,12 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 		setIsLoggedIn(Boolean(token));
 	}, []);
 
+	const handleAuthSuccess = () => {
+		const token = localStorage.getItem("token");
+		setIsLoggedIn(Boolean(token));
+		onNavigate("home");
+	};
+
 	useEffect(() => {
 		const savedTheme = localStorage.getItem("theme");
 		const themeToApply = savedTheme || "light";
@@ -93,6 +103,7 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 		}`;
 
 	return (
+		<>
 		<header className="sticky top-0 z-20 bg-[#93ff96] text-black shadow-md">
 			<nav className="mx-auto flex h-16 w-full max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
 				<button
@@ -199,12 +210,14 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 					<div className="ml-2 hidden items-center gap-2 md:flex">
 						<button
 							type="button"
+							onClick={() => setIsSignUpOpen(true)}
 							className="h-9 rounded-md bg-white px-3 text-sm font-medium text-black transition hover:bg-white/25"
 						>
 							Sign Up
 						</button>
 						<button
 							type="button"
+							onClick={() => setIsSignInOpen(true)}
 							className="h-9 rounded-md bg-white px-3 text-sm font-medium text-black transition hover:bg-white/25"
 						>
 							Sign In
@@ -213,5 +226,17 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 				)}
 			</nav>
 		</header>
+
+		<SignInModal
+			isOpen={isSignInOpen}
+			onClose={() => setIsSignInOpen(false)}
+			onSuccess={handleAuthSuccess}
+		/>
+		<SignUpModal
+			isOpen={isSignUpOpen}
+			onClose={() => setIsSignUpOpen(false)}
+			onSuccess={handleAuthSuccess}
+		/>
+		</>
 	);
 }

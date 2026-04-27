@@ -18,7 +18,7 @@ export const register = async (req: Request, res: Response) => {
       data: { email, password: hashed },
     });
 
-    res.json({ token: signToken(user.id) });
+    res.json({ token: signToken(user.id), email: user.email });
   } catch (error) {
     if (
       typeof error === "object" &&
@@ -52,5 +52,5 @@ export const login = async (req: Request, res: Response) => {
   if (!ok)
     return res.status(400).json({ message: "Invalid email or password" });
 
-  res.json({ token: signToken(user.id) });
+  res.json({ token: signToken(user.id), email: user.email });
 };
