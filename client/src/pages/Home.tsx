@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 type HomeProps = {
   onViewProducts: () => void;
+  onViewCategories: () => void;
 };
 
 interface FeaturePill {
@@ -48,7 +49,7 @@ const previewCards: PreviewCard[] = [
   },
 ];
 
-export default function HomePage({ onViewProducts }: HomeProps) {
+export default function HomePage({ onViewProducts, onViewCategories }: HomeProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -132,7 +133,7 @@ export default function HomePage({ onViewProducts }: HomeProps) {
         </button>
 
         <button
-          onClick={() => {/* navigate to categories */}}
+          onClick={onViewCategories}
           className="group inline-flex items-center gap-2 bg-transparent text-stone-900 border-2 border-stone-900 font-medium text-base px-8 py-3.5 rounded-full cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:scale-105 hover:bg-white hover:text-black hover:shadow-2xl active:scale-95"
         >
           View Categories

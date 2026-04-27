@@ -13,7 +13,10 @@ export default function App() {
     <div className="min-h-screen bg-cyan-50">
       <Navbar currentPage={currentPage} onNavigate={setCurrentPage} />
       {currentPage === "home" ? (
-        <Home onViewProducts={() => setCurrentPage("products")} />
+        <Home
+          onViewProducts={() => setCurrentPage("products")}
+          onViewCategories={() => setCurrentPage("categories")}
+        />
       ) : currentPage === "products" ? (
         <Products />
       ) : (
