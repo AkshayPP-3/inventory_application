@@ -52,6 +52,27 @@ function AddProductModal({ onClose, onAdded }: { onClose: () => void; onAdded: (
   const [form, setForm] = useState({ name: "", price: "", image: "", category: ALL_CATEGORIES[0] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [categoryMap, setCategoryMap] = useState<Record<string, number>>({});
+
+  // Fetch categories to map names to IDs
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+        const res = await fetch(`${apiUrl}/api/categories`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const map: Record<string, number> = {};
+        data.forEach((cat: any) => {
+          map[cat.categoryName] = cat.id;
+        });
+        setCategoryMap(map);
+      } catch {
+        // silently fail
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -68,6 +89,8 @@ function AddProductModal({ onClose, onAdded }: { onClose: () => void; onAdded: (
       }
 
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const categoryId = categoryMap[form.category] || null;
+      
       const res = await fetch(`${apiUrl}/api/products`, {
         method: "POST",
         headers: { 
@@ -78,7 +101,7 @@ function AddProductModal({ onClose, onAdded }: { onClose: () => void; onAdded: (
           name: form.name.trim(),
           price: parseFloat(form.price),
           image: form.image || undefined,
-          categoryId: undefined, // TODO: Add category selection
+          categoryId: categoryId,
         }),
       });
       if (!res.ok) throw new Error("Server error");
