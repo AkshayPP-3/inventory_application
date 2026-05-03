@@ -42,14 +42,10 @@ const CATEGORY_DOT: Record<string, string> = {
   Uncategorized: "bg-stone-300",
 };
 
-const ALL_CATEGORIES = [
-  "Bakery","Beverages","Condiments","Dairy","Frozen","Fruit",
-  "Grains","Pantry","Seafood","Snacks","Uncategorized","Vegetable",
-];
-
 // ─── Add Product Modal ────────────────────────────────────────────────────────
-function AddProductModal({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
-  const [form, setForm] = useState({ name: "", price: "", image: "", category: ALL_CATEGORIES[0] });
+function AddProductModal({ onClose, onAdded, categories }: { onClose: () => void; onAdded: () => void; categories: string[] }) {
+  const defaultCategory = categories.length > 0 ? categories[0] : "Uncategorized";
+  const [form, setForm] = useState({ name: "", price: "", image: "", category: defaultCategory });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [categoryMap, setCategoryMap] = useState<Record<string, number>>({});
@@ -197,7 +193,7 @@ function AddProductModal({ onClose, onAdded }: { onClose: () => void; onAdded: (
               onChange={handle}
               className="w-full border border-stone-200 rounded-xl px-4 py-2.5 text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-lime-300 focus:border-lime-400 transition bg-white"
             >
-              {ALL_CATEGORIES.map((c) => (
+              {categories.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
@@ -279,10 +275,12 @@ function FilterPanel({
   filters,
   onChange,
   onApply,
+  categories,
 }: {
   filters: Filters;
   onChange: (f: Filters) => void;
   onApply: () => void;
+  categories: string[];
 }) {
   const toggleCat = (cat: string) => {
     const has = filters.categories.includes(cat);
@@ -346,7 +344,7 @@ function FilterPanel({
       <div className="mb-6">
         <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2.5">Filter by Category</p>
         <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
-          {ALL_CATEGORIES.map((cat) => {
+          {categories.map((cat) => {
             const checked = filters.categories.includes(cat);
             const dot = CATEGORY_DOT[cat] ?? "bg-stone-300";
             return (
@@ -397,6 +395,7 @@ export default function ProductsPage() {
   const [showModal, setShowModal] = useState(false);
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
 
   const [pendingFilters, setPendingFilters] = useState<Filters>({
     priceSort: "",
@@ -439,8 +438,23 @@ export default function ProductsPage() {
     }
   }
 
+  // ── Fetch categories ───────────────────────────────────────────────────────
+  async function fetchCategories() {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const res = await fetch(`${apiUrl}/api/categories`);
+      if (!res.ok) return;
+      const catData = await res.json();
+      const catNames = catData.map((c: any) => c.categoryName);
+      setCategories(catNames);
+    } catch {
+      // silently fail, use empty categories
+    }
+  }
+
   useEffect(() => {
     setTimeout(() => setVisible(true), 50);
+    fetchCategories();
     fetchProducts();
   }, []);
 
@@ -480,7 +494,7 @@ export default function ProductsPage() {
   return (
     <>
       {showModal && (
-        <AddProductModal onClose={() => setShowModal(false)} onAdded={fetchProducts} />
+        <AddProductModal onClose={() => setShowModal(false)} onAdded={fetchProducts} categories={categories} />
       )}
 
       <main className="relative min-h-screen overflow-hidden bg-amber-50">
@@ -557,6 +571,7 @@ export default function ProductsPage() {
                 filters={pendingFilters}
                 onChange={setPendingFilters}
                 onApply={handleApply}
+                categories={categories}
               />
             </div>
 
