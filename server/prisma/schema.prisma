@@ -11,12 +11,23 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
-model Product {
-  id    Int    @id @default(autoincrement())
-  name  String
-  price Float
-  image String
+model Category {
+  id           Int      @id @default(autoincrement())
+  categoryName String   @unique
+  labelColour  String   // hex color for background
+  createdAt    DateTime @default(now())
+  products     Product[]
 }
+
+model Product {
+  id         Int      @id @default(autoincrement())
+  name       String
+  price      Float
+  image      String
+  categoryId Int?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
