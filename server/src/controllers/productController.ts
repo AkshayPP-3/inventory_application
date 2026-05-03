@@ -5,6 +5,9 @@ import type { Request, Response } from "express";
 export const getProducts = async(_:Request, res:Response)=>{
     try{
         const products = await prisma.product.findMany({
+            include: {
+                category: true,
+            },
             orderBy:{id: "asc"}
         });
         res.status(200).json(products)
@@ -14,13 +17,14 @@ export const getProducts = async(_:Request, res:Response)=>{
     }
 }
 export const createProduct = async (req: Request, res: Response) => {
-    const { name, price, image } = req.body ?? {};
+    const { name, price, image, categoryId } = req.body ?? {};
 
     const parsedName = typeof name === "string" ? name.trim() : "";
     const parsedImage = typeof image === "string" ? image.trim() : "";
     const parsedPrice = typeof price === "number" || typeof price === "string"
         ? Number(price)
         : Number.NaN;
+    const parsedCategoryId = categoryId ? Number(categoryId) : null;
 
     if (!parsedName || !parsedImage || !Number.isFinite(parsedPrice) || parsedPrice < 0) {
         res.status(400).json({ message: "name, price, and image are required" });
@@ -33,6 +37,10 @@ export const createProduct = async (req: Request, res: Response) => {
                 name: parsedName,
                 price: parsedPrice,
                 image: parsedImage,
+                ...(parsedCategoryId ? { categoryId: parsedCategoryId } : {}),
+            },
+            include: {
+                category: true,
             },
         });
 
@@ -52,6 +60,9 @@ export const getProduct = async (req: Request, res: Response) => {
     try {
         const product = await prisma.product.findUnique({
             where: { id },
+            include: {
+                category: true,
+            },
         });
 
         if (!product) {
@@ -72,20 +83,22 @@ export const updateProduct = async (req: Request, res: Response) => {
         return;
     }
 
-    const { name, price, image } = req.body ?? {};
+    const { name, price, image, categoryId } = req.body ?? {};
 
     const parsedName = typeof name === "string" ? name.trim() : undefined;
     const parsedImage = typeof image === "string" ? image.trim() : undefined;
     const parsedPrice = typeof price === "number" || typeof price === "string"
         ? Number(price)
         : undefined;
+    const parsedCategoryId = categoryId ? Number(categoryId) : undefined;
 
     const hasName = parsedName !== undefined;
     const hasImage = parsedImage !== undefined;
     const hasPrice = parsedPrice !== undefined;
+    const hasCategory = parsedCategoryId !== undefined;
 
-    if (!hasName && !hasImage && !hasPrice) {
-        res.status(400).json({ message: "Provide at least one field: name, price, or image" });
+    if (!hasName && !hasImage && !hasPrice && !hasCategory) {
+        res.status(400).json({ message: "Provide at least one field: name, price, image, or categoryId" });
         return;
     }
 
@@ -101,6 +114,10 @@ export const updateProduct = async (req: Request, res: Response) => {
                 ...(hasName ? { name: parsedName } : {}),
                 ...(hasImage ? { image: parsedImage } : {}),
                 ...(hasPrice ? { price: parsedPrice } : {}),
+                ...(hasCategory ? { categoryId: parsedCategoryId } : {}),
+            },
+            include: {
+                category: true,
             },
         });
 

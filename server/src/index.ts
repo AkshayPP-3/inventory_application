@@ -5,6 +5,7 @@ import cors from "cors";
 import dotenv from "dotenv"
 import {aj} from "./lib/arcjet"
 import productRoutes from "./routes/productRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
 import swaggerUi from "swagger-ui-express";
 import { specs } from "./docs/swagger";
 import passport from "./config/passport";
@@ -47,6 +48,7 @@ app.use(async(req,res,next)=>{
 })
 
 app.use("/api/products", productRoutes);
+app.use("/api/categories", categoryRoutes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 app.listen(PORT,()=>{

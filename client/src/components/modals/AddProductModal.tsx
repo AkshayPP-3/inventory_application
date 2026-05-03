@@ -1,5 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+
+interface Category {
+  id: number;
+  categoryName: string;
+  labelColour: string;
+}
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -16,11 +22,34 @@ export default function AddProductModal({
     name: "",
     price: "",
     image: "",
+    categoryId: "",
   });
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    if (isOpen) {
+      fetchCategories();
+    }
+  }, [isOpen]);
+
+  const fetchCategories = async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${apiUrl}/api/categories`);
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch categories:", err);
+    }
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -63,6 +92,7 @@ export default function AddProductModal({
           name: formData.name.trim(),
           price,
           image: formData.image.trim(),
+          ...(formData.categoryId ? { categoryId: parseInt(formData.categoryId) } : {}),
         }),
       });
 
@@ -71,7 +101,7 @@ export default function AddProductModal({
         throw new Error(data.message || "Failed to add product");
       }
 
-      setFormData({ name: "", price: "", image: "" });
+      setFormData({ name: "", price: "", image: "", categoryId: "" });
       onProductAdded();
       onClose();
     } catch (err) {
@@ -136,6 +166,22 @@ export default function AddProductModal({
               placeholder="Image URL"
               className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
             />
+          </div>
+
+          <div>
+            <select
+              name="categoryId"
+              value={formData.categoryId}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="">Select a category (optional)</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.categoryName}
+                </option>
+              ))}
+            </select>
           </div>
 
           {error && (
