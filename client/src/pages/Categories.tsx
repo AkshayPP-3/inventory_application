@@ -32,10 +32,21 @@ function AddCategoryModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
     if (!name.trim()) { setError("Category name is required."); return; }
     setLoading(true); setError("");
     try {
-      const res = await fetch("https://inventory-app-jbjm.onrender.com/categories/new", {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Please log in to add categories");
+        setLoading(false);
+        return;
+      }
+
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const res = await fetch(`${apiUrl}/api/categories`, {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ name: name.trim() }).toString(),
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({ categoryName: name.trim(), labelColour: "#FF6B6B" }),
       });
       if (!res.ok) throw new Error("Server error");
       onAdded();
@@ -162,34 +173,32 @@ export default function CategoriesPage() {
   async function fetchData() {
     setLoading(true); setError("");
     try {
-      // Fetch categories page
-      const catRes = await fetch("https://inventory-app-jbjm.onrender.com/categories");
-      const catHtml = await catRes.text();
-      const catDoc = new DOMParser().parseFromString(catHtml, "text/html");
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      
+      // Fetch categories from API
+      const catRes = await fetch(`${apiUrl}/api/categories`);
+      if (!catRes.ok) throw new Error("Failed to fetch categories");
+      const categoriesData = await catRes.json();
+      
+      // Extract category names
+      const catNames = categoriesData.map((c: any) => c.categoryName);
+      setCategories(catNames);
 
-      const parsed: string[] = [];
-      catDoc.querySelectorAll("a[href*='?category=']").forEach((a) => {
-        const h2 = a.querySelector("h2");
-        if (h2?.textContent?.trim()) parsed.push(h2.textContent.trim());
-      });
-      setCategories(parsed);
+      // Fetch products to count per category
+      const prodRes = await fetch(`${apiUrl}/api/products`);
+      if (!prodRes.ok) throw new Error("Failed to fetch products");
+      const productsData = await prodRes.json();
 
-      // Fetch products page to count per category
-      const prodRes = await fetch("https://inventory-app-jbjm.onrender.com/products");
-      const prodHtml = await prodRes.text();
-      const prodDoc = new DOMParser().parseFromString(prodHtml, "text/html");
-
+      // Count products per category
       const counts: Record<string, number> = {};
-      prodDoc.querySelectorAll("a[href*='/products/']").forEach((link) => {
-        const href = link.getAttribute("href") ?? "";
-        if (!/\/products\/\d+$/.test(href)) return;
-        const paragraphs = Array.from(link.querySelectorAll("p"));
-        const cat = paragraphs[4]?.textContent?.trim();
-        if (cat) counts[cat] = (counts[cat] ?? 0) + 1;
+      productsData.forEach((product: any) => {
+        const catName = product.category?.categoryName || "Uncategorized";
+        counts[catName] = (counts[catName] ?? 0) + 1;
       });
       setProductCounts(counts);
-    } catch {
+    } catch (err) {
       setError("Could not load categories. Check your connection.");
+      console.error(err);
     } finally {
       setLoading(false);
     }

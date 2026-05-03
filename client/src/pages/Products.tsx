@@ -60,10 +60,26 @@ function AddProductModal({ onClose, onAdded }: { onClose: () => void; onAdded: (
     if (!form.name.trim() || !form.price) { setError("Name and price are required."); return; }
     setLoading(true); setError("");
     try {
-      const res = await fetch("https://inventory-app-jbjm.onrender.com/products/new", {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Please log in to add products");
+        setLoading(false);
+        return;
+      }
+
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const res = await fetch(`${apiUrl}/api/products`, {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams(form as Record<string, string>).toString(),
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          price: parseFloat(form.price),
+          image: form.image || undefined,
+          categoryId: undefined, // TODO: Add category selection
+        }),
       });
       if (!res.ok) throw new Error("Server error");
       onAdded();
@@ -374,47 +390,27 @@ export default function ProductsPage() {
   async function fetchProducts() {
     setLoading(true); setError("");
     try {
-      // We scrape the HTML page and parse product data from it
-      const res = await fetch("https://inventory-app-jbjm.onrender.com/products");
-      const html = await res.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      
+      // Fetch products from API
+      const res = await fetch(`${apiUrl}/api/products`);
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const productsData = await res.json();
 
-      const links = doc.querySelectorAll('a[href*="/products/"]');
-      const parsed: Product[] = [];
-      let id = 1;
-
-      links.forEach((link) => {
-        const href = link.getAttribute("href") ?? "";
-        if (!/\/products\/\d+$/.test(href)) return;
-        const img = link.querySelector("img");
-        const paragraphs = Array.from(link.querySelectorAll("p"));
-
-        const name = paragraphs[0]?.textContent?.trim() ?? "";
-        const priceText = paragraphs[1]?.textContent?.trim() ?? "";
-        const brandText = paragraphs[2]?.textContent?.replace("Brand:", "").trim() ?? "";
-        const qtyText = paragraphs[3]?.textContent?.replace("Quantity:", "").trim() ?? "";
-        const categoryText = paragraphs[4]?.textContent?.trim() ?? "Uncategorized";
-        const price = parseFloat(priceText.replace("$", "")) || 0;
-        const imgSrc = img?.getAttribute("src") ?? "";
-
-        if (name) {
-          parsed.push({
-            id: id++,
-            name,
-            price,
-            image: imgSrc,
-            category: categoryText,
-            brand: brandText || undefined,
-            quantity: qtyText ? parseInt(qtyText) : undefined,
-          });
-        }
-      });
+      // Map API response to Product format
+      const parsed: Product[] = productsData.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        image: p.image || "",
+        category: p.category?.categoryName || "Uncategorized",
+      }));
 
       setProducts(parsed);
       applyFilters(parsed, appliedFilters, search);
-    } catch {
+    } catch (err) {
       setError("Could not load products. Check your connection.");
+      console.error(err);
     } finally {
       setLoading(false);
     }
