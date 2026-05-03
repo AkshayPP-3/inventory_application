@@ -125,7 +125,7 @@ function CategoryCard({
       } ${index % 2 === 0 ? "hover:-rotate-1" : "hover:rotate-1"}`}
     >
       {/* Gradient bar */}
-      <div className={`h-2 rounded-full bg-gradient-to-r ${meta.gradient} mb-4`} />
+      <div className={`h-2 rounded-full bg-linear-to-r ${meta.gradient} mb-4`} />
 
       {/* Emoji */}
       <div className="text-3xl mb-3 transition-transform duration-300 group-hover:scale-110 origin-left">
