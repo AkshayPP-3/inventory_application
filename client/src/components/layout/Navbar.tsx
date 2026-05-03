@@ -1,13 +1,11 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import SignInModal from "../modals/SignInModal";
 import SignUpModal from "../modals/SignUpModal";
 
-type NavbarProps = {
-	currentPage: "home" | "products" | "categories";
-	onNavigate: (page: "home" | "products" | "categories") => void;
-};
-
-export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
+export default function Navbar() {
+	const navigate = useNavigate();
+	const location = useLocation();
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [currentTheme, setCurrentTheme] = useState("light");
@@ -59,7 +57,7 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 	const handleAuthSuccess = () => {
 		const token = localStorage.getItem("token");
 		setIsLoggedIn(Boolean(token));
-		onNavigate("home");
+		navigate("/");
 	};
 
 	useEffect(() => {
@@ -85,7 +83,7 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 
 	const handleSearch = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		onNavigate("products");
+		navigate("/products");
 	};
 
 	const handleThemeChange = (theme: string) => {
@@ -95,9 +93,11 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 		setIsThemeMenuOpen(false);
 	};
 
-	const navLinkClass = (page: "home" | "products" | "categories") =>
+	const isCurrentPath = (path: string) => location.pathname === path;
+
+	const navLinkClass = (path: string) =>
 		`px-2 py-1 text-sm font-medium transition ${
-			currentPage === page
+			isCurrentPath(path)
 				? "text-black"
 				: "text-stone-500 hover:text-black"
 		}`;
@@ -108,7 +108,7 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 			<nav className="mx-auto flex h-16 w-full max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
 				<button
 					type="button"
-					onClick={() => onNavigate("home")}
+					onClick={() => navigate("/")}
 					className="text-black font-bold tracking-wide"
 				>
 					FreshStock
@@ -118,8 +118,8 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 					<li>
 						<button
 							type="button"
-							onClick={() => onNavigate("home")}
-							className={navLinkClass("home")}
+							onClick={() => navigate("/")}
+							className={navLinkClass("/")}
 						>
 							Home
 						</button>
@@ -127,8 +127,8 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 					<li>
 						<button
 							type="button"
-							onClick={() => onNavigate("products")}
-							className={navLinkClass("products")}
+							onClick={() => navigate("/products")}
+							className={navLinkClass("/products")}
 						>
 							Products
 						</button>
@@ -136,8 +136,8 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
 					<li>
 						<button
 							type="button"
-							onClick={() => onNavigate("categories")}
-							className={navLinkClass("categories")}
+							onClick={() => navigate("/categories")}
+							className={navLinkClass("/categories")}
 						>
 							Categories
 						</button>

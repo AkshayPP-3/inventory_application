@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
-
-type HomeProps = {
-  onViewProducts: () => void;
-  onViewCategories: () => void;
-};
+import { useNavigate } from "react-router-dom";
 
 interface FeaturePill {
   label: string;
@@ -49,7 +45,8 @@ const previewCards: PreviewCard[] = [
   },
 ];
 
-export default function HomePage({ onViewProducts, onViewCategories }: HomeProps) {
+export default function HomePage() {
+  const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -125,7 +122,7 @@ export default function HomePage({ onViewProducts, onViewCategories }: HomeProps
         }`}
       >
         <button
-          onClick={onViewProducts}
+          onClick={() => navigate("/products")}
           className="group inline-flex items-center gap-2 bg-stone-900 text-lime-300 border-2 border-stone-900 font-medium text-base px-8 py-3.5 rounded-full cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:scale-105 hover:shadow-2xl active:scale-95"
         >
           View Products
@@ -133,7 +130,7 @@ export default function HomePage({ onViewProducts, onViewCategories }: HomeProps
         </button>
 
         <button
-          onClick={onViewCategories}
+          onClick={() => navigate("/categories")}
           className="group inline-flex items-center gap-2 bg-transparent text-stone-900 border-2 border-stone-900 font-medium text-base px-8 py-3.5 rounded-full cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:scale-105 hover:bg-white hover:text-black hover:shadow-2xl active:scale-95"
         >
           View Categories
