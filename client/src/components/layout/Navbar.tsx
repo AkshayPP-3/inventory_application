@@ -42,8 +42,6 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentTheme, setCurrentTheme] = useState("light");
-  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSignInOpen, setIsSignInOpen] = useState(false);
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
@@ -53,16 +51,7 @@ export default function Navbar() {
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [levelUpInfo, setLevelUpInfo] = useState({ level: 1 });
   const prevLevelRef = useRef(1);
-
-  const themeMenuRef = useRef<HTMLDivElement | null>(null);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
-
-  const daisyThemes = [
-    "light","dark","cupcake","bumblebee","emerald","corporate","synthwave",
-    "retro","cyberpunk","valentine","halloween","garden","forest","aqua",
-    "lofi","pastel","fantasy","wireframe","black","luxury","dracula","cmyk",
-    "autumn","business","acid","lemonade","night","coffee","winter","dim","nord","sunset",
-  ];
 
   // ── Bootstrap auth & product count ──────────────────────────────────────────
   useEffect(() => {
@@ -79,43 +68,26 @@ export default function Navbar() {
   // ── Listen for product additions across the app ──────────────────────────────
   // Dispatch a "productAdded" CustomEvent from wherever you add a product
   useEffect(() => {
-    const handler = () => {
-      setProductCount((prev) => {
-        const next = prev + 1;
-        localStorage.setItem("productCount", String(next));
-        const { level } = getLevelInfo(next);
-        if (level > prevLevelRef.current) {
-          prevLevelRef.current = level;
-          setLevelUpInfo({ level });
-          setShowLevelUp(true);
-        }
-        return next;
-      });
+    const handleProductAdded = () => {
+      const newCount = parseInt(localStorage.getItem("productCount") ?? "0", 10);
+      setProductCount(newCount);
+
+      const prevLevel = prevLevelRef.current;
+      const { level: newLevel } = getLevelInfo(newCount);
+      if (newLevel > prevLevel) {
+        setLevelUpInfo({ level: newLevel });
+        setShowLevelUp(true);
+        prevLevelRef.current = newLevel;
+      }
     };
-    window.addEventListener("productAdded", handler);
-    return () => window.removeEventListener("productAdded", handler);
+
+    window.addEventListener("productAdded", handleProductAdded);
+    return () => window.removeEventListener("productAdded", handleProductAdded);
   }, []);
 
-  const handleAuthSuccess = () => {
-    const token = localStorage.getItem("token");
-    setIsLoggedIn(Boolean(token));
-    const email = localStorage.getItem("userEmail") ?? "";
-    setUserEmail(email);
-    navigate("/");
-  };
-
-  // ── Theme ────────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") ?? "light";
-    setCurrentTheme(savedTheme);
-    document.documentElement.setAttribute("data-theme", savedTheme);
-  }, []);
-
-  // ── Outside-click closes both menus ─────────────────────────────────────────
+  // ── Outside-click closes profile menu ──────────────────────────────────────────
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node))
-        setIsThemeMenuOpen(false);
       if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node))
         setIsProfileOpen(false);
     };
@@ -132,12 +104,16 @@ export default function Navbar() {
     }
   };
 
-  const handleThemeChange = (theme: string) => {
-    setCurrentTheme(theme);
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-    setIsThemeMenuOpen(false);
+  const handleAuthSuccess = () => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(Boolean(token));
+    const email = localStorage.getItem("userEmail") ?? "";
+    setUserEmail(email);
+    setIsSignInOpen(false);
+    setIsSignUpOpen(false);
   };
+
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -213,41 +189,7 @@ export default function Navbar() {
             </div>
           )}
 
-          {/* Theme picker */}
-          <div ref={themeMenuRef} className="relative">
-            <button
-              type="button"
-              onClick={() => setIsThemeMenuOpen((o) => !o)}
-              className="inline-flex h-9 items-center gap-2 rounded-md bg-white px-3 text-sm font-medium text-black shadow-sm transition hover:bg-neutral-100"
-              aria-haspopup="menu"
-              aria-expanded={isThemeMenuOpen}
-            >
-              Theme <span aria-hidden>▼</span>
-            </button>
-            {isThemeMenuOpen && (
-              <ul
-                className="absolute right-0 top-full z-30 mt-2 max-h-72 w-52 overflow-y-auto rounded-lg bg-white p-2 text-sm text-slate-800 shadow-xl"
-                role="menu"
-              >
-                {daisyThemes.map((theme) => (
-                  <li key={theme}>
-                    <button
-                      type="button"
-                      onClick={() => handleThemeChange(theme)}
-                      className={`w-full rounded-md px-3 py-2 text-left capitalize transition ${
-                        currentTheme === theme
-                          ? "bg-emerald-100 font-semibold text-emerald-800"
-                          : "hover:bg-slate-100"
-                      }`}
-                      role="menuitem"
-                    >
-                      {theme}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+
 
           {/* ── User profile / auth buttons ── */}
           {isLoggedIn ? (
