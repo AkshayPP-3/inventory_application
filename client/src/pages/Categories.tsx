@@ -1,28 +1,424 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-// ─── Category metadata ────────────────────────────────────────────────────────
-const CATEGORY_META: Record<
-  string,
-  { gradient: string; dot: string; badge: string; emoji: string; desc: string }
-> = {
-  Bakery:       { gradient: "from-orange-300 to-orange-500",  dot: "bg-orange-400",  badge: "bg-orange-400 text-orange-900",  emoji: "🍞", desc: "Breads, pastries & baked goods" },
-  Beverages:    { gradient: "from-sky-300 to-sky-500",        dot: "bg-sky-400",     badge: "bg-sky-200 text-sky-900",        emoji: "🥤", desc: "Juices, coffee, tea & drinks" },
-  Condiments:   { gradient: "from-yellow-300 to-yellow-500",  dot: "bg-yellow-400",  badge: "bg-yellow-300 text-yellow-900",  emoji: "🧴", desc: "Sauces, spreads & seasonings" },
-  Dairy:        { gradient: "from-blue-200 to-blue-400",      dot: "bg-blue-400",    badge: "bg-blue-200 text-blue-900",      emoji: "🥛", desc: "Milk, cheese, eggs & butter" },
-  Frozen:       { gradient: "from-cyan-300 to-cyan-500",      dot: "bg-cyan-400",    badge: "bg-cyan-200 text-cyan-900",      emoji: "🧊", desc: "Frozen meals, ice cream & more" },
-  Fruit:        { gradient: "from-lime-300 to-lime-500",      dot: "bg-lime-400",    badge: "bg-lime-300 text-lime-900",      emoji: "🍎", desc: "Fresh fruits & berries" },
-  Grains:       { gradient: "from-amber-300 to-amber-500",    dot: "bg-amber-400",   badge: "bg-amber-300 text-amber-900",    emoji: "🌾", desc: "Pasta, rice & whole grains" },
-  Pantry:       { gradient: "from-stone-300 to-stone-500",    dot: "bg-stone-400",   badge: "bg-stone-200 text-stone-700",    emoji: "🫙", desc: "Oils, sugar, salt & staples" },
-  Seafood:      { gradient: "from-teal-300 to-teal-500",      dot: "bg-teal-400",    badge: "bg-teal-200 text-teal-900",      emoji: "🐟", desc: "Fish, shrimp & ocean catches" },
-  Snacks:       { gradient: "from-pink-300 to-pink-500",      dot: "bg-pink-400",    badge: "bg-pink-200 text-pink-900",      emoji: "🍪", desc: "Cookies, chips & treats" },
-  Uncategorized:{ gradient: "from-stone-200 to-stone-400",    dot: "bg-stone-300",   badge: "bg-stone-100 text-stone-500",    emoji: "📦", desc: "Miscellaneous items" },
-  Vegetable:    { gradient: "from-green-300 to-green-500",    dot: "bg-green-500",   badge: "bg-green-300 text-green-900",    emoji: "🥦", desc: "Fresh vegetables & greens" },
+// ─── Comprehensive grocery category metadata ──────────────────────────────────
+interface CategoryMeta {
+  gradient: string;       // Tailwind gradient classes for the colour bar
+  dot: string;            // Tailwind bg class for the small dot indicator
+  badge: string;          // Tailwind bg + text classes for the category badge pill
+  badgeDark: string;      // Darker variant used in ProductCard
+  emoji: string;          // Representative emoji
+  desc: string;           // Short one-liner description
+  group: string;          // Parent group label (for grouping in UI if needed)
+}
+
+const CATEGORY_META: Record<string, CategoryMeta> = {
+  // ── Produce & Fresh ─────────────────────────────────────────────────────────
+  "Fruits": {
+    gradient: "from-lime-300 to-green-400",
+    dot: "bg-lime-400",
+    badge: "bg-lime-300 text-lime-900",
+    badgeDark: "bg-lime-400 text-lime-900",
+    emoji: "🍎",
+    desc: "Fresh fruits & berries",
+    group: "Produce & Fresh",
+  },
+  "Fruit": {
+    gradient: "from-lime-300 to-green-400",
+    dot: "bg-lime-400",
+    badge: "bg-lime-300 text-lime-900",
+    badgeDark: "bg-lime-400 text-lime-900",
+    emoji: "🍎",
+    desc: "Fresh fruits & berries",
+    group: "Produce & Fresh",
+  },
+  "Vegetables": {
+    gradient: "from-green-300 to-emerald-500",
+    dot: "bg-green-500",
+    badge: "bg-green-200 text-green-900",
+    badgeDark: "bg-green-400 text-green-900",
+    emoji: "🥦",
+    desc: "Fresh vegetables & greens",
+    group: "Produce & Fresh",
+  },
+  "Vegetable": {
+    gradient: "from-green-300 to-emerald-500",
+    dot: "bg-green-500",
+    badge: "bg-green-200 text-green-900",
+    badgeDark: "bg-green-400 text-green-900",
+    emoji: "🥦",
+    desc: "Fresh vegetables & greens",
+    group: "Produce & Fresh",
+  },
+  "Herbs & Salads": {
+    gradient: "from-emerald-200 to-teal-400",
+    dot: "bg-emerald-400",
+    badge: "bg-emerald-100 text-emerald-900",
+    badgeDark: "bg-emerald-300 text-emerald-900",
+    emoji: "🌿",
+    desc: "Fresh herbs, salad leaves & microgreens",
+    group: "Produce & Fresh",
+  },
+  "Organic Produce": {
+    gradient: "from-lime-200 to-lime-400",
+    dot: "bg-lime-300",
+    badge: "bg-lime-100 text-lime-900",
+    badgeDark: "bg-lime-300 text-lime-900",
+    emoji: "🌱",
+    desc: "Certified organic fruits & vegetables",
+    group: "Produce & Fresh",
+  },
+
+  // ── Dairy & Eggs ────────────────────────────────────────────────────────────
+  "Dairy": {
+    gradient: "from-blue-200 to-blue-400",
+    dot: "bg-blue-400",
+    badge: "bg-blue-200 text-blue-900",
+    badgeDark: "bg-blue-300 text-blue-900",
+    emoji: "🥛",
+    desc: "Milk, cheese, yoghurt & more",
+    group: "Dairy & Eggs",
+  },
+  "Milk & Cream": {
+    gradient: "from-sky-100 to-blue-300",
+    dot: "bg-sky-300",
+    badge: "bg-sky-100 text-sky-900",
+    badgeDark: "bg-sky-200 text-sky-900",
+    emoji: "🍼",
+    desc: "Whole, semi-skimmed & plant milks",
+    group: "Dairy & Eggs",
+  },
+  "Cheese": {
+    gradient: "from-yellow-200 to-amber-400",
+    dot: "bg-yellow-400",
+    badge: "bg-yellow-200 text-yellow-900",
+    badgeDark: "bg-yellow-300 text-yellow-900",
+    emoji: "🧀",
+    desc: "Hard, soft & specialty cheeses",
+    group: "Dairy & Eggs",
+  },
+  "Eggs & Butter": {
+    gradient: "from-amber-200 to-orange-300",
+    dot: "bg-amber-300",
+    badge: "bg-amber-100 text-amber-900",
+    badgeDark: "bg-amber-300 text-amber-900",
+    emoji: "🥚",
+    desc: "Fresh eggs, butter & spreads",
+    group: "Dairy & Eggs",
+  },
+
+  // ── Meat & Seafood ──────────────────────────────────────────────────────────
+  "Meat & Poultry": {
+    gradient: "from-rose-300 to-red-500",
+    dot: "bg-rose-400",
+    badge: "bg-rose-200 text-rose-900",
+    badgeDark: "bg-rose-400 text-rose-900",
+    emoji: "🥩",
+    desc: "Beef, chicken, pork & lamb",
+    group: "Meat & Seafood",
+  },
+  "Seafood": {
+    gradient: "from-teal-300 to-teal-500",
+    dot: "bg-teal-400",
+    badge: "bg-teal-200 text-teal-900",
+    badgeDark: "bg-teal-400 text-teal-900",
+    emoji: "🐟",
+    desc: "Fish, shrimp & ocean catches",
+    group: "Meat & Seafood",
+  },
+  "Deli Meats": {
+    gradient: "from-red-200 to-rose-400",
+    dot: "bg-red-400",
+    badge: "bg-red-100 text-red-900",
+    badgeDark: "bg-red-300 text-red-900",
+    emoji: "🥓",
+    desc: "Sliced meats, sausages & cold cuts",
+    group: "Meat & Seafood",
+  },
+
+  // ── Bakery ──────────────────────────────────────────────────────────────────
+  "Bakery": {
+    gradient: "from-orange-300 to-orange-500",
+    dot: "bg-orange-400",
+    badge: "bg-orange-200 text-orange-900",
+    badgeDark: "bg-orange-400 text-orange-900",
+    emoji: "🍞",
+    desc: "Breads, pastries & baked goods",
+    group: "Bakery",
+  },
+  "Bread": {
+    gradient: "from-amber-300 to-orange-400",
+    dot: "bg-amber-400",
+    badge: "bg-amber-200 text-amber-900",
+    badgeDark: "bg-amber-300 text-amber-900",
+    emoji: "🥖",
+    desc: "Sourdough, wholegrain & specialty breads",
+    group: "Bakery",
+  },
+  "Pastries": {
+    gradient: "from-pink-200 to-orange-300",
+    dot: "bg-pink-300",
+    badge: "bg-pink-100 text-pink-900",
+    badgeDark: "bg-pink-300 text-pink-900",
+    emoji: "🥐",
+    desc: "Croissants, muffins & sweet pastries",
+    group: "Bakery",
+  },
+
+  // ── Beverages ───────────────────────────────────────────────────────────────
+  "Beverages": {
+    gradient: "from-sky-300 to-sky-500",
+    dot: "bg-sky-400",
+    badge: "bg-sky-200 text-sky-900",
+    badgeDark: "bg-sky-300 text-sky-900",
+    emoji: "🥤",
+    desc: "Juices, coffee, tea & drinks",
+    group: "Beverages",
+  },
+  "Coffee & Tea": {
+    gradient: "from-amber-400 to-stone-500",
+    dot: "bg-amber-500",
+    badge: "bg-amber-200 text-amber-900",
+    badgeDark: "bg-amber-400 text-amber-900",
+    emoji: "☕",
+    desc: "Ground coffee, beans, loose leaf & tea bags",
+    group: "Beverages",
+  },
+  "Juices": {
+    gradient: "from-orange-300 to-yellow-400",
+    dot: "bg-orange-400",
+    badge: "bg-orange-100 text-orange-900",
+    badgeDark: "bg-orange-300 text-orange-900",
+    emoji: "🍊",
+    desc: "Freshly squeezed & bottled juices",
+    group: "Beverages",
+  },
+  "Soft Drinks": {
+    gradient: "from-pink-300 to-fuchsia-400",
+    dot: "bg-pink-400",
+    badge: "bg-pink-100 text-pink-900",
+    badgeDark: "bg-pink-300 text-pink-900",
+    emoji: "🫧",
+    desc: "Sodas, sparkling water & energy drinks",
+    group: "Beverages",
+  },
+  "Alcoholic Beverages": {
+    gradient: "from-purple-300 to-violet-500",
+    dot: "bg-purple-400",
+    badge: "bg-purple-100 text-purple-900",
+    badgeDark: "bg-purple-300 text-purple-900",
+    emoji: "🍷",
+    desc: "Wine, beer, spirits & mixers",
+    group: "Beverages",
+  },
+
+  // ── Pantry & Dry Goods ──────────
+  "Pantry": {
+    gradient: "from-stone-300 to-stone-500",
+    dot: "bg-stone-400",
+    badge: "bg-stone-200 text-stone-700",
+    badgeDark: "bg-stone-400 text-stone-100",
+    emoji: "🫙",
+    desc: "Oils, sugar, salt & everyday staples",
+    group: "Pantry & Dry Goods",
+  },
+  "Grains & Cereals": {
+    gradient: "from-amber-200 to-yellow-400",
+    dot: "bg-amber-400",
+    badge: "bg-amber-100 text-amber-900",
+    badgeDark: "bg-amber-300 text-amber-900",
+    emoji: "🌾",
+    desc: "Oats, cereals, muesli & granola",
+    group: "Pantry & Dry Goods",
+  },
+  "Grains": {
+    gradient: "from-amber-200 to-yellow-400",
+    dot: "bg-amber-400",
+    badge: "bg-amber-100 text-amber-900",
+    badgeDark: "bg-amber-300 text-amber-900",
+    emoji: "🌾",
+    desc: "Rice, quinoa, barley & whole grains",
+    group: "Pantry & Dry Goods",
+  },
+  "Pasta & Rice": {
+    gradient: "from-yellow-200 to-amber-300",
+    dot: "bg-yellow-400",
+    badge: "bg-yellow-100 text-yellow-900",
+    badgeDark: "bg-yellow-300 text-yellow-900",
+    emoji: "🍝",
+    desc: "Pasta, noodles, rice & couscous",
+    group: "Pantry & Dry Goods",
+  },
+  "Flour & Baking": {
+    gradient: "from-stone-200 to-amber-200",
+    dot: "bg-stone-300",
+    badge: "bg-stone-100 text-stone-700",
+    badgeDark: "bg-stone-300 text-stone-800",
+    emoji: "🧁",
+    desc: "Flour, sugar, yeast & baking essentials",
+    group: "Pantry & Dry Goods",
+  },
+  "Canned Goods": {
+    gradient: "from-slate-300 to-slate-500",
+    dot: "bg-slate-400",
+    badge: "bg-slate-200 text-slate-800",
+    badgeDark: "bg-slate-400 text-slate-100",
+    emoji: "🥫",
+    desc: "Tinned vegetables, beans, soups & fish",
+    group: "Pantry & Dry Goods",
+  },
+  "Snacks": {
+    gradient: "from-pink-300 to-pink-500",
+    dot: "bg-pink-400",
+    badge: "bg-pink-200 text-pink-900",
+    badgeDark: "bg-pink-400 text-pink-900",
+    emoji: "🍪",
+    desc: "Cookies, chips, nuts & treats",
+    group: "Pantry & Dry Goods",
+  },
+
+  // ── Condiments & Sauces ────
+  "Condiments": {
+    gradient: "from-yellow-300 to-yellow-500",
+    dot: "bg-yellow-400",
+    badge: "bg-yellow-200 text-yellow-900",
+    badgeDark: "bg-yellow-300 text-yellow-900",
+    emoji: "🧴",
+    desc: "Ketchup, mustard, mayo & relishes",
+    group: "Condiments & Sauces",
+  },
+  "Sauces & Dressings": {
+    gradient: "from-red-300 to-orange-400",
+    dot: "bg-red-400",
+    badge: "bg-red-100 text-red-900",
+    badgeDark: "bg-red-300 text-red-900",
+    emoji: "🍅",
+    desc: "Pasta sauces, salad dressings & marinades",
+    group: "Condiments & Sauces",
+  },
+  "Oils & Vinegars": {
+    gradient: "from-yellow-400 to-amber-500",
+    dot: "bg-yellow-500",
+    badge: "bg-yellow-200 text-yellow-900",
+    badgeDark: "bg-yellow-400 text-yellow-900",
+    emoji: "🫒",
+    desc: "Olive oil, vegetable oil & vinegars",
+    group: "Condiments & Sauces",
+  },
+  "Spices & Seasonings": {
+    gradient: "from-orange-400 to-red-500",
+    dot: "bg-orange-500",
+    badge: "bg-orange-200 text-orange-900",
+    badgeDark: "bg-orange-400 text-orange-900",
+    emoji: "🌶️",
+    desc: "Herbs, spices, salt & pepper blends",
+    group: "Condiments & Sauces",
+  },
+
+  // ── Frozen ──────────
+  "Frozen": {
+    gradient: "from-cyan-300 to-cyan-500",
+    dot: "bg-cyan-400",
+    badge: "bg-cyan-200 text-cyan-900",
+    badgeDark: "bg-cyan-400 text-cyan-900",
+    emoji: "🧊",
+    desc: "Frozen meals, snacks & ready-to-cook",
+    group: "Frozen",
+  },
+  "Frozen Foods": {
+    gradient: "from-cyan-300 to-cyan-500",
+    dot: "bg-cyan-400",
+    badge: "bg-cyan-200 text-cyan-900",
+    badgeDark: "bg-cyan-400 text-cyan-900",
+    emoji: "❄️",
+    desc: "Ready meals, pizzas & frozen snacks",
+    group: "Frozen",
+  },
+  "Frozen Vegetables": {
+    gradient: "from-teal-200 to-cyan-400",
+    dot: "bg-teal-300",
+    badge: "bg-teal-100 text-teal-900",
+    badgeDark: "bg-teal-300 text-teal-900",
+    emoji: "🥬",
+    desc: "Peas, sweetcorn, spinach & stir-fry mixes",
+    group: "Frozen",
+  },
+  "Ice Cream": {
+    gradient: "from-pink-200 to-purple-300",
+    dot: "bg-pink-300",
+    badge: "bg-pink-100 text-pink-900",
+    badgeDark: "bg-pink-300 text-pink-900",
+    emoji: "🍦",
+    desc: "Ice cream, sorbet & frozen desserts",
+    group: "Frozen",
+  },
+
+  // ── Health & Beauty ────────
+  "Health & Supplements": {
+    gradient: "from-green-200 to-teal-400",
+    dot: "bg-green-400",
+    badge: "bg-green-100 text-green-900",
+    badgeDark: "bg-green-300 text-green-900",
+    emoji: "💊",
+    desc: "Vitamins, supplements & health foods",
+    group: "Health & Beauty",
+  },
+  "Personal Care": {
+    gradient: "from-violet-200 to-purple-400",
+    dot: "bg-violet-400",
+    badge: "bg-violet-100 text-violet-900",
+    badgeDark: "bg-violet-300 text-violet-900",
+    emoji: "🧴",
+    desc: "Skincare, haircare & hygiene products",
+    group: "Health & Beauty",
+  },
+
+  // ── Household ───────────
+  "Household Essentials": {
+    gradient: "from-slate-200 to-slate-400",
+    dot: "bg-slate-400",
+    badge: "bg-slate-100 text-slate-800",
+    badgeDark: "bg-slate-300 text-slate-800",
+    emoji: "🏠",
+    desc: "Paper goods, batteries & home essentials",
+    group: "Household",
+  },
+  "Cleaning Supplies": {
+    gradient: "from-sky-200 to-blue-400",
+    dot: "bg-sky-400",
+    badge: "bg-sky-100 text-sky-900",
+    badgeDark: "bg-sky-300 text-sky-900",
+    emoji: "🧹",
+    desc: "Detergents, disinfectants & cleaning tools",
+    group: "Household",
+  },
+
+  // ── Fallback ───────
+  "Uncategorized": {
+    gradient: "from-stone-200 to-stone-400",
+    dot: "bg-stone-300",
+    badge: "bg-stone-100 text-stone-500",
+    badgeDark: "bg-stone-300 text-stone-700",
+    emoji: "📦",
+    desc: "Miscellaneous items",
+    group: "Other",
+  },
 };
 
-const DEFAULT_META = { gradient: "from-stone-200 to-stone-400", dot: "bg-stone-300", badge: "bg-stone-100 text-stone-500", emoji: "📦", desc: "Products in this category" };
+// ─── Convenience helpers ────
 
-// ─── Add Category Modal ───────────────────────────────────────────────────────
+/** Returns the meta for a category name, falling back gracefully. */
+function getCategoryMeta(name: string): CategoryMeta {
+  return (
+    CATEGORY_META[name] ??
+    Object.entries(CATEGORY_META).find(
+      ([k]) => k.toLowerCase() === name.toLowerCase()
+    )?.[1] ??
+    CATEGORY_META["Uncategorized"]
+  );
+}
+
+// ─── Add Category Modal ─────
 function AddCategoryModal({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -102,7 +498,7 @@ function AddCategoryModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
   );
 }
 
-// ─── Category Card ────────────────────────────────────────────────────────────
+// ─── Category Card ──────
 function CategoryCard({
   name,
   count,
@@ -114,7 +510,7 @@ function CategoryCard({
   index: number;
   onClick: () => void;
 }) {
-  const meta = CATEGORY_META[name] ?? DEFAULT_META;
+  const meta = getCategoryMeta(name);
   const offset = index % 3 === 1;
 
   return (
@@ -125,7 +521,7 @@ function CategoryCard({
       } ${index % 2 === 0 ? "hover:-rotate-1" : "hover:rotate-1"}`}
     >
       {/* Gradient bar */}
-      <div className={`h-2 rounded-full bg--to-r ${meta.gradient} mb-4`} />
+      <div className={`h-2 rounded-full bg-lnear-to-r ${meta.gradient} mb-4`} />
 
       {/* Emoji */}
       <div className="text-3xl mb-3 transition-transform duration-300 group-hover:scale-110 origin-left">
@@ -158,7 +554,7 @@ function CategoryCard({
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Main Page ──────
 export default function CategoriesPage() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<string[]>([]);
@@ -169,7 +565,7 @@ export default function CategoriesPage() {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState("");
 
-  // ── Fetch categories + product counts ──────────────────────────────────────
+  // ── Fetch categories + product counts ────────
   async function fetchData() {
     setLoading(true); setError("");
     try {
@@ -230,7 +626,7 @@ export default function CategoriesPage() {
 
         <div className="relative z-10 max-w-6xl mx-auto px-6 py-16">
 
-          {/* ── Header ──────────────────────────────────────────────────────── */}
+          {/* ── Header ───── */}
           <div
             className={`flex flex-wrap items-center justify-between gap-4 mb-12 transition-all duration-700 ${
               visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
@@ -283,7 +679,7 @@ export default function CategoriesPage() {
             </div>
           </div>
 
-          {/* ── Stats row ───────────────────────────────────────────────────── */}
+          {/* ── Stats row ────────*/}
           {!loading && categories.length > 0 && (
             <div
               className={`flex flex-wrap gap-3 mb-10 transition-all duration-700 delay-100 ${
@@ -329,7 +725,7 @@ export default function CategoriesPage() {
             </div>
           )}
 
-          {/* ── Category grid ─────────────────────────────────────────────────── */}
+          {/* ── Category grid ───────*/}
           {!loading && !error && filtered.length > 0 && (
             <div
               className={`grid gap-5 transition-all duration-700 delay-200 ${
@@ -349,7 +745,7 @@ export default function CategoriesPage() {
             </div>
           )}
 
-          {/* ── Footer nudge ─────────────────────────────────────────────────── */}
+          {/* ── Footer nudge ────── */}
           {!loading && filtered.length > 0 && (
             <p
               className={`mt-14 text-center text-sm text-stone-400 transition-all duration-700 delay-500 ${
