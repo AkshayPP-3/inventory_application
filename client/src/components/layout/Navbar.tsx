@@ -23,14 +23,14 @@ function getLevelInfo(productCount: number) {
 }
 
 // ─── Level-up toast ────────────────────────────────────────────────────────────
-function LevelUpToast({ level, title, onDone }: { level: number; title: string; onDone: () => void }) {
+function LevelUpToast({ level, onDone }: { level: number; onDone: () => void }) {
   useEffect(() => {
     const t = setTimeout(onDone, 3000);
     return () => clearTimeout(t);
   }, [onDone]);
   return (
     <div className="fixed bottom-6 right-6 z-50 animate-bounce rounded-xl bg-lime-400 px-5 py-3 shadow-xl text-black font-bold text-sm">
-      🎉 Level up! You're now <span className="text-emerald-800">Lv.{level} {title}</span>
+      🎉 Level up! You're now <span className="text-emerald-800">Lv.{level}</span>
     </div>
   );
 }
@@ -51,7 +51,7 @@ export default function Navbar() {
   // Gamification
   const [productCount, setProductCount] = useState(0);
   const [showLevelUp, setShowLevelUp] = useState(false);
-  const [levelUpInfo, setLevelUpInfo] = useState({ level: 1, title: "" });
+  const [levelUpInfo, setLevelUpInfo] = useState({ level: 1 });
   const prevLevelRef = useRef(1);
 
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
@@ -83,10 +83,10 @@ export default function Navbar() {
       setProductCount((prev) => {
         const next = prev + 1;
         localStorage.setItem("productCount", String(next));
-        const { level, title } = getLevelInfo(next);
+        const { level } = getLevelInfo(next);
         if (level > prevLevelRef.current) {
           prevLevelRef.current = level;
-          setLevelUpInfo({ level, title });
+          setLevelUpInfo({ level });
           setShowLevelUp(true);
         }
         return next;
@@ -150,7 +150,7 @@ export default function Navbar() {
       isCurrentPath(path) ? "text-black" : "text-stone-500 hover:text-black"
     }`;
 
-  const { level, title, progress, nextFloor, currentFloor } = getLevelInfo(productCount);
+  const { level, progress, nextFloor, currentFloor } = getLevelInfo(productCount);
   const avatarLetter = userEmail ? userEmail[0].toUpperCase() : "U";
 
   return (
@@ -195,7 +195,7 @@ export default function Navbar() {
           {isLoggedIn && (
             <div className="hidden md:flex flex-col items-center leading-none min-w-72">
               <span className="text-[10px] font-semibold text-emerald-900 uppercase tracking-wider">
-                Lv.{level} · {title}
+                Lv.{level}
               </span>
               <div className="mt-1 h-1.5 w-16 rounded-full bg-black/20 overflow-hidden">
                 <div
@@ -274,7 +274,7 @@ export default function Navbar() {
                   <div className="px-4 py-3 border-b border-slate-100">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-semibold text-emerald-700">
-                        Lv.{level} — {title}
+                        Lv.{level}
                       </span>
                       <span className="text-xs text-slate-400">{progress}%</span>
                     </div>
@@ -327,7 +327,6 @@ export default function Navbar() {
       {showLevelUp && (
         <LevelUpToast
           level={levelUpInfo.level}
-          title={levelUpInfo.title}
           onDone={() => setShowLevelUp(false)}
         />
       )}
