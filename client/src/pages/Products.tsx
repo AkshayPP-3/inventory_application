@@ -472,9 +472,18 @@ export default function ProductsPage() {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
       
-      // Fetch products from API
-      const res = await fetch(`${apiUrl}/api/products`);
-      if (!res.ok) throw new Error("Failed to fetch products");
+      // Fetch products from API with 10s timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const res = await fetch(`${apiUrl}/api/products`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(`Server error: ${res.status} - ${errorData.message || res.statusText}`);
+      }
+      
       const productsData = await res.json();
 
       // Map API response to Product format
@@ -488,9 +497,15 @@ export default function ProductsPage() {
 
       setProducts(parsed);
       applyFilters(parsed, appliedFilters, search);
-    } catch (err) {
-      setError("Could not load products. Check your connection.");
-      console.error(err);
+    } catch (err: any) {
+      let errorMsg = "Could not load products. Check your connection.";
+      if (err.name === "AbortError") {
+        errorMsg = "Request timeout - server took too long to respond.";
+      } else if (err.message?.includes("Failed to fetch")) {
+        errorMsg = "Network error - is the server running on http://localhost:3000?";
+      }
+      setError(errorMsg);
+      console.error("[Products Fetch Error]", err);
     } finally {
       setLoading(false);
     }
@@ -500,12 +515,23 @@ export default function ProductsPage() {
   async function fetchCategories() {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-      const res = await fetch(`${apiUrl}/api/categories`);
-      if (!res.ok) return;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const res = await fetch(`${apiUrl}/api/categories`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      
+      if (!res.ok) {
+        console.warn(`[Categories Fetch] Server responded with ${res.status}`);
+        return;
+      }
       const catData = await res.json();
       const catNames = catData.map((c: any) => c.categoryName);
       setCategories(catNames);
-    } catch {
+    } catch (err: any) {
+      if (err.name !== "AbortError") {
+        console.warn("[Categories Fetch Error]", err.message);
+      }
       // silently fail, use empty categories
     }
   }

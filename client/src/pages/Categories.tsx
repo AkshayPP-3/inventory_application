@@ -570,10 +570,15 @@ export default function CategoriesPage() {
     setLoading(true); setError("");
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       
       // Fetch categories from API
-      const catRes = await fetch(`${apiUrl}/api/categories`);
-      if (!catRes.ok) throw new Error("Failed to fetch categories");
+      const catRes = await fetch(`${apiUrl}/api/categories`, { signal: controller.signal });
+      if (!catRes.ok) {
+        const errorData = await catRes.json().catch(() => ({}));
+        throw new Error(`Categories failed: ${catRes.status} - ${errorData.message || catRes.statusText}`);
+      }
       const categoriesData = await catRes.json();
       
       // Extract category names
@@ -581,8 +586,12 @@ export default function CategoriesPage() {
       setCategories(catNames);
 
       // Fetch products to count per category
-      const prodRes = await fetch(`${apiUrl}/api/products`);
-      if (!prodRes.ok) throw new Error("Failed to fetch products");
+      const prodRes = await fetch(`${apiUrl}/api/products`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (!prodRes.ok) {
+        const errorData = await prodRes.json().catch(() => ({}));
+        throw new Error(`Products failed: ${prodRes.status} - ${errorData.message || prodRes.statusText}`);
+      }
       const productsData = await prodRes.json();
 
       // Count products per category
@@ -592,9 +601,15 @@ export default function CategoriesPage() {
         counts[catName] = (counts[catName] ?? 0) + 1;
       });
       setProductCounts(counts);
-    } catch (err) {
-      setError("Could not load categories. Check your connection.");
-      console.error(err);
+    } catch (err: any) {
+      let errorMsg = "Could not load categories. Check your connection.";
+      if (err.name === "AbortError") {
+        errorMsg = "Request timeout - server took too long to respond.";
+      } else if (err.message?.includes("Failed to fetch")) {
+        errorMsg = "Network error - is the server running on http://localhost:3000?";
+      }
+      setError(errorMsg);
+      console.error("[Categories Fetch Error]", err);
     } finally {
       setLoading(false);
     }

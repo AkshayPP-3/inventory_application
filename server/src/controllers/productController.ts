@@ -12,8 +12,12 @@ export const getProducts = async(_:Request, res:Response)=>{
         });
         res.status(200).json(products)
     }
-    catch{
-        res.status(500).json({message:"Internal server error"})
+    catch(error: any){
+        console.error("[getProducts Error]", error.message || error);
+        res.status(500).json({
+            message:"Internal server error",
+            error: process.env.NODE_ENV === "development" ? error.message : undefined
+        })
     }
 }
 export const createProduct = async (req: Request, res: Response) => {

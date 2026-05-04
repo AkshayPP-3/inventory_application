@@ -11,8 +11,12 @@ export const getCategories = async (req: any, res: any) => {
       },
     });
     res.json(categories);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching categories" });
+  } catch (error: any) {
+    console.error("[getCategories Error]", error.message || error);
+    res.status(500).json({
+      message: "Error fetching categories",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined
+    });
   }
 };
 
