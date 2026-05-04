@@ -464,7 +464,7 @@ function ProductDetailsModal({ product, onClose }: { product: Product | null; on
     >
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-[slideUp_0.25s_ease-out]">
         {/* Image */}
-        <div className="relative h-64 bg-gradient-to-b from-stone-50 to-stone-100 flex items-center justify-center">
+        <div className="relative h-64 bg-linear-to-b from-stone-50 to-stone-100 flex items-center justify-center">
           {product.image ? (
             <img
               src={product.image.startsWith("http") ? product.image : `https://inventory-app-jbjm.onrender.com${product.image}`}
@@ -491,7 +491,7 @@ function ProductDetailsModal({ product, onClose }: { product: Product | null; on
           </div>
           
           {/* Price */}
-          <div className="bg-gradient-to-r from-lime-50 to-green-50 rounded-2xl p-4 border border-lime-200">
+          <div className="bg-linear-to-r from-lime-50 to-green-50 rounded-2xl p-4 border border-lime-200">
             <p className="text-xs text-stone-500 uppercase font-semibold tracking-wider mb-1">Price</p>
             <p className="text-3xl font-extrabold text-stone-900">${price.toFixed(2)}</p>
           </div>

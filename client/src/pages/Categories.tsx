@@ -437,7 +437,7 @@ function CategoryDetailsModal({
     >
       <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full my-8 overflow-hidden animate-[slideUp_0.25s_ease-out]">
         {/* Header */}
-        <div className={`bg-gradient-to-r ${meta.gradient} p-8 relative`}>
+        <div className={`bg-linear-to-r ${meta.gradient} p-8 relative`}>
           <button
             onClick={onClose}
             className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-stone-600 hover:bg-stone-100 transition"
