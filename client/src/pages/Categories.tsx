@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
-// ─── Comprehensive grocery category metadata ──────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface Product {
+  id: number;
+  name: string;
+  price: string | number;
+  image: string;
+  category?: { categoryName: string };
+}
+
 interface CategoryMeta {
   gradient: string;       // Tailwind gradient classes for the colour bar
   dot: string;            // Tailwind bg class for the small dot indicator
@@ -405,6 +412,113 @@ const CATEGORY_META: Record<string, CategoryMeta> = {
   },
 };
 
+// ─── Category Details Modal ──────────────────────────────────────────────────
+function CategoryDetailsModal({
+  categoryName,
+  products,
+  onClose,
+}: {
+  categoryName: string | null;
+  products: Product[];
+  onClose: () => void;
+}) {
+  if (!categoryName) return null;
+
+  const meta = getCategoryMeta(categoryName);
+  const categoryProducts = products.filter(
+    (p) => (p.category?.categoryName || "Uncategorized") === categoryName
+  );
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-4 overflow-y-auto"
+      style={{ background: "rgba(28,24,20,0.55)", backdropFilter: "blur(4px)" }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full my-8 overflow-hidden animate-[slideUp_0.25s_ease-out]">
+        {/* Header */}
+        <div className={`bg-gradient-to-r ${meta.gradient} p-8 relative`}>
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-stone-600 hover:bg-stone-100 transition"
+          >
+            ✕
+          </button>
+
+          <div className="flex items-start gap-4">
+            <div className="text-5xl">{meta.emoji}</div>
+            <div>
+              <h2 className="font-extrabold text-stone-900 text-3xl mb-2">{categoryName}</h2>
+              <p className="text-stone-700 text-sm">{meta.desc}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Products list */}
+        <div className="p-6">
+          {categoryProducts.length === 0 ? (
+            <div className="text-center py-12 text-stone-400">
+              <p className="text-4xl mb-3">📭</p>
+              <p className="font-medium">No products in this category yet.</p>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm font-semibold text-stone-500 uppercase tracking-wider mb-4">
+                {categoryProducts.length} Product{categoryProducts.length !== 1 ? "s" : ""}
+              </p>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {categoryProducts.map((product) => {
+                  const price =
+                    typeof product.price === "string"
+                      ? parseFloat(product.price.replace("$", ""))
+                      : product.price;
+                  return (
+                    <div
+                      key={product.id}
+                      className="flex items-center gap-4 p-4 bg-stone-50 rounded-xl hover:bg-stone-100 transition"
+                    >
+                      {product.image ? (
+                        <img
+                          src={
+                            product.image.startsWith("http")
+                              ? product.image
+                              : `https://inventory-app-jbjm.onrender.com${product.image}`
+                          }
+                          alt={product.name}
+                          className="w-12 h-12 object-contain rounded-lg bg-white"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 flex items-center justify-center bg-white rounded-lg text-xl">
+                          📦
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-stone-900 truncate">{product.name}</p>
+                        <p className="text-xs text-stone-400">
+                          ID: {product.id}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-extrabold text-stone-900">${price.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+          <button
+            onClick={onClose}
+            className="w-full bg-lime-400 text-stone-900 font-semibold py-3 rounded-xl hover:bg-lime-300 transition mt-6"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Convenience helpers ────
 
 /** Returns the meta for a category name, falling back gracefully. */
@@ -556,14 +670,15 @@ function CategoryCard({
 
 // ─── Main Page ──────
 export default function CategoriesPage() {
-  const navigate = useNavigate();
   const [categories, setCategories] = useState<string[]>([]);
   const [productCounts, setProductCounts] = useState<Record<string, number>>({});
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // ── Fetch categories + product counts ────────
   async function fetchData() {
@@ -601,6 +716,7 @@ export default function CategoriesPage() {
         counts[catName] = (counts[catName] ?? 0) + 1;
       });
       setProductCounts(counts);
+      setAllProducts(productsData);
     } catch (err: any) {
       let errorMsg = "Could not load categories. Check your connection.";
       if (err.name === "AbortError") {
@@ -754,7 +870,7 @@ export default function CategoriesPage() {
                   name={cat}
                   count={productCounts[cat] ?? 0}
                   index={i}
-                  onClick={() => navigate(`/products?category=${encodeURIComponent(cat)}`)}
+                  onClick={() => setSelectedCategory(cat)}
                 />
               ))}
             </div>
@@ -773,6 +889,12 @@ export default function CategoriesPage() {
           )}
         </div>
       </main>
+
+      <CategoryDetailsModal
+        categoryName={selectedCategory}
+        products={allProducts}
+        onClose={() => setSelectedCategory(null)}
+      />
     </>
   );
 }

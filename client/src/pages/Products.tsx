@@ -272,7 +272,7 @@ function AddProductModal({ onClose, onAdded, categories }: { onClose: () => void
 }
 
 // ─── Product Card ─────────────────────────────────────────────────────────────
-function ProductCard({ product, index }: { product: Product; index: number }) {
+function ProductCard({ product, index, onClick }: { product: Product; index: number; onClick: () => void }) {
   const price = typeof product.price === "string"
     ? parseFloat(product.price.replace("$", ""))
     : product.price;
@@ -282,6 +282,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
 
   return (
     <div
+      onClick={onClick}
       className="bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
       style={{ animationDelay: `${index * 40}ms` }}
     >
@@ -445,6 +446,84 @@ function FilterPanel({
   );
 }
 
+// ─── Product Details Modal ────────────────────────────────────────────────────
+function ProductDetailsModal({ product, onClose }: { product: Product | null; onClose: () => void }) {
+  if (!product) return null;
+  
+  const price = typeof product.price === "string"
+    ? parseFloat(product.price.replace("$", ""))
+    : product.price;
+  
+  const colorClass = CATEGORY_COLORS[product.category] ?? "bg-stone-100 text-stone-500";
+  
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: "rgba(28,24,20,0.55)", backdropFilter: "blur(4px)" }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-[slideUp_0.25s_ease-out]">
+        {/* Image */}
+        <div className="relative h-64 bg-gradient-to-b from-stone-50 to-stone-100 flex items-center justify-center">
+          {product.image ? (
+            <img
+              src={product.image.startsWith("http") ? product.image : `https://inventory-app-jbjm.onrender.com${product.image}`}
+              alt={product.name}
+              className="h-48 w-48 object-contain"
+            />
+          ) : (
+            <div className="text-7xl">📦</div>
+          )}
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-stone-600 hover:bg-stone-100 transition"
+          >
+            ✕
+          </button>
+        </div>
+        
+        {/* Details */}
+        <div className="p-6 space-y-4">
+          <div>
+            <h2 className="font-extrabold text-stone-900 text-2xl mb-2">{product.name}</h2>
+            {product.brand && <p className="text-xs text-stone-400 mb-3">{product.brand}</p>}
+          </div>
+          
+          {/* Price */}
+          <div className="bg-gradient-to-r from-lime-50 to-green-50 rounded-2xl p-4 border border-lime-200">
+            <p className="text-xs text-stone-500 uppercase font-semibold tracking-wider mb-1">Price</p>
+            <p className="text-3xl font-extrabold text-stone-900">${price.toFixed(2)}</p>
+          </div>
+          
+          {/* Category */}
+          <div>
+            <p className="text-xs text-stone-500 uppercase font-semibold tracking-wider mb-2">Category</p>
+            <span className={`inline-block text-xs font-semibold uppercase tracking-wider px-4 py-2 rounded-full ${colorClass}`}>
+              {product.category}
+            </span>
+          </div>
+          
+          {/* Quantity if available */}
+          {product.quantity !== undefined && (
+            <div className="bg-stone-50 rounded-2xl p-4">
+              <p className="text-xs text-stone-500 uppercase font-semibold tracking-wider mb-1">In Stock</p>
+              <p className="text-xl font-bold text-stone-900">{product.quantity} units</p>
+            </div>
+          )}
+          
+          <button
+            onClick={onClose}
+            className="w-full bg-lime-400 text-stone-900 font-semibold py-3 rounded-xl hover:bg-lime-300 transition mt-4"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function ProductsPage() {
   const [searchParams] = useSearchParams();
@@ -456,6 +535,7 @@ export default function ProductsPage() {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState(() => searchParams.get("search") || "");
   const [categories, setCategories] = useState<string[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const [pendingFilters, setPendingFilters] = useState<Filters>({
     priceSort: "",
@@ -693,7 +773,12 @@ export default function ProductsPage() {
                   style={{ gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))" }}
                 >
                   {displayed.map((p, i) => (
-                    <ProductCard key={p.id} product={p} index={i} />
+                    <ProductCard 
+                      key={p.id} 
+                      product={p} 
+                      index={i}
+                      onClick={() => setSelectedProduct(p)}
+                    />
                   ))}
                 </div>
               )}
@@ -701,6 +786,8 @@ export default function ProductsPage() {
           </div>
         </div>
       </main>
+
+      <ProductDetailsModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
     </>
   );
 }
