@@ -125,7 +125,11 @@ export default function Navbar() {
 
   const handleSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    navigate("/products");
+    if (searchTerm.trim()) {
+      // Navigate to products page with search query for products only
+      navigate(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
+      setSearchTerm(""); // Clear search after submit
+    }
   };
 
   const handleThemeChange = (theme: string) => {

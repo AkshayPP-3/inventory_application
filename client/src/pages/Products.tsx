@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Product {
@@ -446,13 +447,14 @@ function FilterPanel({
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function ProductsPage() {
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [displayed, setDisplayed] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [visible, setVisible] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => searchParams.get("search") || "");
   const [categories, setCategories] = useState<string[]>([]);
 
   const [pendingFilters, setPendingFilters] = useState<Filters>({
