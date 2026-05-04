@@ -58,6 +58,7 @@ export default function SignInModal({
       }
 
       localStorage.setItem("token", data.token);
+      localStorage.setItem("userEmail", formData.email.trim());
       setFormData({ email: "", password: "" });
       onSuccess();
       onClose();

@@ -13,7 +13,7 @@ export default function App() {
       // Store token and email in localStorage
       localStorage.setItem("token", token);
       if (email) {
-        localStorage.setItem("email", email);
+        localStorage.setItem("userEmail", email);
       }
       // Remove params from URL to clean it up
       window.history.replaceState({}, document.title, window.location.pathname);

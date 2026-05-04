@@ -69,6 +69,7 @@ export default function SignUpModal({
       }
 
       localStorage.setItem("token", data.token);
+      localStorage.setItem("userEmail", formData.email.trim());
       setFormData({ email: "", password: "", confirmPassword: "" });
       onSuccess();
       onClose();

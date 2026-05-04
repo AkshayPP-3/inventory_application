@@ -211,7 +211,6 @@ export default function Navbar() {
                       {avatarLetter}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs text-slate-500">Signed in as</p>
                       <p className="text-sm font-semibold text-slate-800 truncate">{userEmail || "User"}</p>
                     </div>
                   </div>
