@@ -3,240 +3,337 @@ import { useNavigate, useLocation } from "react-router-dom";
 import SignInModal from "../modals/SignInModal";
 import SignUpModal from "../modals/SignUpModal";
 
+// ─── Gamification config ───────────────────────────────────────────────────────
+const LEVEL_THRESHOLDS = [0, 3, 7, 13, 21, 31]; // products needed per level
+const LEVEL_TITLES = ["Stockling", "Tracker", "Keeper", "Manager", "Director", "Legend"];
+
+function getLevelInfo(productCount: number) {
+  let level = 0;
+  for (let i = 0; i < LEVEL_THRESHOLDS.length; i++) {
+    if (productCount >= LEVEL_THRESHOLDS[i]) level = i + 1;
+  }
+  level = Math.min(level, LEVEL_TITLES.length);
+  const currentFloor = LEVEL_THRESHOLDS[level - 1] ?? 0;
+  const nextFloor = LEVEL_THRESHOLDS[level] ?? currentFloor + 1;
+  const progress = Math.min(
+    100,
+    Math.round(((productCount - currentFloor) / (nextFloor - currentFloor)) * 100)
+  );
+  return { level, title: LEVEL_TITLES[level - 1], progress, nextFloor, currentFloor };
+}
+
+// ─── Level-up toast ────────────────────────────────────────────────────────────
+function LevelUpToast({ level, title, onDone }: { level: number; title: string; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 3000);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  return (
+    <div className="fixed bottom-6 right-6 z-50 animate-bounce rounded-xl bg-lime-400 px-5 py-3 shadow-xl text-black font-bold text-sm">
+      🎉 Level up! You're now <span className="text-emerald-800">Lv.{level} {title}</span>
+    </div>
+  );
+}
+
 export default function Navbar() {
-	const navigate = useNavigate();
-	const location = useLocation();
-	const [isLoggedIn, setIsLoggedIn] = useState(false);
-	const [searchTerm, setSearchTerm] = useState("");
-	const [currentTheme, setCurrentTheme] = useState("light");
-	const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
-	const [isSignInOpen, setIsSignInOpen] = useState(false);
-	const [isSignUpOpen, setIsSignUpOpen] = useState(false);
-	const themeMenuRef = useRef<HTMLDivElement | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-	const daisyThemes = [
-		"light",
-		"dark",
-		"cupcake",
-		"bumblebee",
-		"emerald",
-		"corporate",
-		"synthwave",
-		"retro",
-		"cyberpunk",
-		"valentine",
-		"halloween",
-		"garden",
-		"forest",
-		"aqua",
-		"lofi",
-		"pastel",
-		"fantasy",
-		"wireframe",
-		"black",
-		"luxury",
-		"dracula",
-		"cmyk",
-		"autumn",
-		"business",
-		"acid",
-		"lemonade",
-		"night",
-		"coffee",
-		"winter",
-		"dim",
-		"nord",
-		"sunset",
-	];
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentTheme, setCurrentTheme] = useState("light");
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSignInOpen, setIsSignInOpen] = useState(false);
+  const [isSignUpOpen, setIsSignUpOpen] = useState(false);
 
-	useEffect(() => {
-		const token = localStorage.getItem("token");
-		setIsLoggedIn(Boolean(token));
-	}, []);
+  // Gamification
+  const [productCount, setProductCount] = useState(0);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [levelUpInfo, setLevelUpInfo] = useState({ level: 1, title: "" });
+  const prevLevelRef = useRef(1);
 
-	const handleAuthSuccess = () => {
-		const token = localStorage.getItem("token");
-		setIsLoggedIn(Boolean(token));
-		navigate("/");
-	};
+  const themeMenuRef = useRef<HTMLDivElement | null>(null);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
-	useEffect(() => {
-		const savedTheme = localStorage.getItem("theme");
-		const themeToApply = savedTheme || "light";
-		setCurrentTheme(themeToApply);
-		document.documentElement.setAttribute("data-theme", themeToApply);
-	}, []);
+  const daisyThemes = [
+    "light","dark","cupcake","bumblebee","emerald","corporate","synthwave",
+    "retro","cyberpunk","valentine","halloween","garden","forest","aqua",
+    "lofi","pastel","fantasy","wireframe","black","luxury","dracula","cmyk",
+    "autumn","business","acid","lemonade","night","coffee","winter","dim","nord","sunset",
+  ];
 
-	useEffect(() => {
-		const handleOutsideClick = (event: MouseEvent) => {
-			if (!themeMenuRef.current) return;
-			if (!themeMenuRef.current.contains(event.target as Node)) {
-				setIsThemeMenuOpen(false);
-			}
-		};
+  // ── Bootstrap auth & product count ──────────────────────────────────────────
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(Boolean(token));
+    const email = localStorage.getItem("userEmail") ?? "";
+    setUserEmail(email);
 
-		document.addEventListener("mousedown", handleOutsideClick);
-		return () => {
-			document.removeEventListener("mousedown", handleOutsideClick);
-		};
-	}, []);
+    const count = parseInt(localStorage.getItem("productCount") ?? "0", 10);
+    setProductCount(count);
+    prevLevelRef.current = getLevelInfo(count).level;
+  }, []);
 
-	const handleSearch = (event: FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
-		navigate("/products");
-	};
+  // ── Listen for product additions across the app ──────────────────────────────
+  // Dispatch a "productAdded" CustomEvent from wherever you add a product
+  useEffect(() => {
+    const handler = () => {
+      setProductCount((prev) => {
+        const next = prev + 1;
+        localStorage.setItem("productCount", String(next));
+        const { level, title } = getLevelInfo(next);
+        if (level > prevLevelRef.current) {
+          prevLevelRef.current = level;
+          setLevelUpInfo({ level, title });
+          setShowLevelUp(true);
+        }
+        return next;
+      });
+    };
+    window.addEventListener("productAdded", handler);
+    return () => window.removeEventListener("productAdded", handler);
+  }, []);
 
-	const handleThemeChange = (theme: string) => {
-		setCurrentTheme(theme);
-		document.documentElement.setAttribute("data-theme", theme);
-		localStorage.setItem("theme", theme);
-		setIsThemeMenuOpen(false);
-	};
+  const handleAuthSuccess = () => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(Boolean(token));
+    const email = localStorage.getItem("userEmail") ?? "";
+    setUserEmail(email);
+    navigate("/");
+  };
 
-	const isCurrentPath = (path: string) => location.pathname === path;
+  // ── Theme ────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") ?? "light";
+    setCurrentTheme(savedTheme);
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  }, []);
 
-	const navLinkClass = (path: string) =>
-		`px-2 py-1 text-sm font-medium transition ${
-			isCurrentPath(path)
-				? "text-black"
-				: "text-stone-500 hover:text-black"
-		}`;
+  // ── Outside-click closes both menus ─────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node))
+        setIsThemeMenuOpen(false);
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node))
+        setIsProfileOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-	return (
-		<>
-		<header className="sticky top-0 z-20 bg-[#93ff96] text-black shadow-md">
-			<nav className="mx-auto flex h-16 w-full max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
-				<button
-					type="button"
-					onClick={() => navigate("/")}
-					className="text-black font-bold tracking-wide"
-				>
-					FreshStock
-				</button>
+  const handleSearch = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    navigate("/products");
+  };
 
-				<ul className="hidden items-center gap-5 md:flex">
-					<li>
-						<button
-							type="button"
-							onClick={() => navigate("/")}
-							className={navLinkClass("/")}
-						>
-							Home
-						</button>
-					</li>
-					<li>
-						<button
-							type="button"
-							onClick={() => navigate("/products")}
-							className={navLinkClass("/products")}
-						>
-							Products
-						</button>
-					</li>
-					<li>
-						<button
-							type="button"
-							onClick={() => navigate("/categories")}
-							className={navLinkClass("/categories")}
-						>
-							Categories
-						</button>
-					</li>
-				</ul>
+  const handleThemeChange = (theme: string) => {
+    setCurrentTheme(theme);
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+    setIsThemeMenuOpen(false);
+  };
 
-				<form onSubmit={handleSearch} className="ml-auto hidden items-center gap-2 md:flex">
-					<input
-						type="text"
-						value={searchTerm}
-						onChange={(event) => setSearchTerm(event.target.value)}
-						placeholder="Search"
-						className="h-9 w-64 rounded-md bg-white px-3 text-sm text-slate-800 outline-none"
-					/>
-					<button
-						type="submit"
-						className="h-9 rounded-md bg-lime-400 px-4 text-sm font-semibold text-emerald-900 transition hover:bg-white/25"
-					>
-						Search
-					</button>
-				</form>
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userEmail");
+    setIsLoggedIn(false);
+    setUserEmail("");
+    setIsProfileOpen(false);
+    navigate("/");
+  };
 
-				<div ref={themeMenuRef} className="relative">
-					<button
-						type="button"
-						onClick={() => setIsThemeMenuOpen((open) => !open)}
-						className="inline-flex h-9 items-center gap-2 rounded-md bg-white px-3 text-sm font-medium text-black shadow-sm transition hover:bg-neutral-100"
-						aria-haspopup="menu"
-						aria-expanded={isThemeMenuOpen}
-						title="Theme menu"
-					>
-						Theme
-						<span aria-hidden="true">▼</span>
-					</button>
-					{isThemeMenuOpen ? (
-						<ul
-							className="absolute right-0 top-full z-30 mt-2 max-h-72 w-52 overflow-y-auto rounded-lg bg-white p-2 text-sm text-slate-800 shadow-xl"
-							role="menu"
-						>
-							{daisyThemes.map((theme) => (
-								<li key={theme}>
-									<button
-										type="button"
-										onClick={() => handleThemeChange(theme)}
-										className={`w-full rounded-md px-3 py-2 text-left capitalize transition ${
-											currentTheme === theme
-												? "bg-emerald-100 font-semibold text-emerald-800"
-												: "hover:bg-slate-100"
-										}`}
-										role="menuitem"
-									>
-										{theme}
-									</button>
-								</li>
-							))}
-						</ul>
-					) : null}
-				</div>
+  const isCurrentPath = (path: string) => location.pathname === path;
+  const navLinkClass = (path: string) =>
+    `px-2 py-1 text-sm font-medium transition ${
+      isCurrentPath(path) ? "text-black" : "text-stone-500 hover:text-black"
+    }`;
 
-				{isLoggedIn ? (
-					<button
-						type="button"
-						aria-label="Open user details"
-						title="User details"
-						className="ml-2 flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white"
-					>
-						U
-					</button>
-				) : (
-					<div className="ml-2 hidden items-center gap-2 md:flex">
-						<button
-							type="button"
-							onClick={() => setIsSignUpOpen(true)}
-							className="h-9 rounded-md bg-white px-3 text-sm font-medium text-black transition hover:bg-white/25"
-						>
-							Sign Up
-						</button>
-						<button
-							type="button"
-							onClick={() => setIsSignInOpen(true)}
-							className="h-9 rounded-md bg-white px-3 text-sm font-medium text-black transition hover:bg-white/25"
-						>
-							Sign In
-						</button>
-					</div>
-				)}
-			</nav>
-		</header>
+  const { level, title, progress, nextFloor, currentFloor } = getLevelInfo(productCount);
+  const avatarLetter = userEmail ? userEmail[0].toUpperCase() : "U";
 
-		<SignInModal
-			isOpen={isSignInOpen}
-			onClose={() => setIsSignInOpen(false)}
-			onSuccess={handleAuthSuccess}
-		/>
-		<SignUpModal
-			isOpen={isSignUpOpen}
-			onClose={() => setIsSignUpOpen(false)}
-			onSuccess={handleAuthSuccess}
-		/>
-		</>
-	);
+  return (
+    <>
+      <header className="sticky top-0 z-20 bg-[#93ff96] text-black shadow-md">
+        <nav className="mx-auto flex h-16 w-full max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
+
+          {/* Logo */}
+          <button type="button" onClick={() => navigate("/")} className="text-black font-bold tracking-wide">
+            FreshStock
+          </button>
+
+          {/* Nav links */}
+          <ul className="hidden items-center gap-5 md:flex">
+            {["/", "/products", "/categories"].map((path, i) => (
+              <li key={path}>
+                <button type="button" onClick={() => navigate(path)} className={navLinkClass(path)}>
+                  {["Home", "Products", "Categories"][i]}
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {/* Search */}
+          <form onSubmit={handleSearch} className="ml-auto hidden items-center gap-2 md:flex">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search"
+              className="h-9 w-64 rounded-md bg-white px-3 text-sm text-slate-800 outline-none"
+            />
+            <button
+              type="submit"
+              className="h-9 rounded-md bg-lime-400 px-4 text-sm font-semibold text-emerald-900 transition hover:bg-white/25"
+            >
+              Search
+            </button>
+          </form>
+
+          {/* ── Gamification badge ── */}
+          {isLoggedIn && (
+            <div className="hidden md:flex flex-col items-center leading-none min-w-72">
+              <span className="text-[10px] font-semibold text-emerald-900 uppercase tracking-wider">
+                Lv.{level} · {title}
+              </span>
+              <div className="mt-1 h-1.5 w-16 rounded-full bg-black/20 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-emerald-700 transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <span className="text-[9px] text-emerald-900/70 mt-0.5">
+                {productCount - currentFloor}/{nextFloor - currentFloor} to Lv.{level + 1}
+              </span>
+            </div>
+          )}
+
+          {/* Theme picker */}
+          <div ref={themeMenuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setIsThemeMenuOpen((o) => !o)}
+              className="inline-flex h-9 items-center gap-2 rounded-md bg-white px-3 text-sm font-medium text-black shadow-sm transition hover:bg-neutral-100"
+              aria-haspopup="menu"
+              aria-expanded={isThemeMenuOpen}
+            >
+              Theme <span aria-hidden>▼</span>
+            </button>
+            {isThemeMenuOpen && (
+              <ul
+                className="absolute right-0 top-full z-30 mt-2 max-h-72 w-52 overflow-y-auto rounded-lg bg-white p-2 text-sm text-slate-800 shadow-xl"
+                role="menu"
+              >
+                {daisyThemes.map((theme) => (
+                  <li key={theme}>
+                    <button
+                      type="button"
+                      onClick={() => handleThemeChange(theme)}
+                      className={`w-full rounded-md px-3 py-2 text-left capitalize transition ${
+                        currentTheme === theme
+                          ? "bg-emerald-100 font-semibold text-emerald-800"
+                          : "hover:bg-slate-100"
+                      }`}
+                      role="menuitem"
+                    >
+                      {theme}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* ── User profile / auth buttons ── */}
+          {isLoggedIn ? (
+            <div ref={profileMenuRef} className="relative ml-2">
+              <button
+                type="button"
+                onClick={() => setIsProfileOpen((o) => !o)}
+                aria-label="Open user menu"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white hover:ring-2 hover:ring-emerald-400 transition"
+              >
+                {avatarLetter}
+              </button>
+
+              {isProfileOpen && (
+                <div className="absolute right-0 top-full z-30 mt-2 w-64 rounded-xl bg-white shadow-xl border border-slate-100 overflow-hidden">
+                  {/* Profile header */}
+                  <div className="flex items-center gap-3 px-4 py-3 bg-lime-50 border-b border-slate-100">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white font-bold text-sm shrink-0">
+                      {avatarLetter}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs text-slate-500">Signed in as</p>
+                      <p className="text-sm font-semibold text-slate-800 truncate">{userEmail || "User"}</p>
+                    </div>
+                  </div>
+
+                  {/* Level info inside dropdown */}
+                  <div className="px-4 py-3 border-b border-slate-100">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold text-emerald-700">
+                        Lv.{level} — {title}
+                      </span>
+                      <span className="text-xs text-slate-400">{progress}%</span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    <p className="mt-1 text-[11px] text-slate-400">
+                      {productCount} products added · {nextFloor - productCount} more to Lv.{level + 1}
+                    </p>
+                  </div>
+
+                  {/* Logout */}
+                  <div className="px-3 py-2">
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full rounded-lg px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition text-left"
+                    >
+                      🚪 Sign out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="ml-2 hidden items-center gap-2 md:flex">
+              <button
+                type="button"
+                onClick={() => setIsSignUpOpen(true)}
+                className="h-9 rounded-md bg-white px-3 text-sm font-medium text-black transition hover:bg-white/25"
+              >
+                Sign Up
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsSignInOpen(true)}
+                className="h-9 rounded-md bg-white px-3 text-sm font-medium text-black transition hover:bg-white/25"
+              >
+                Sign In
+              </button>
+            </div>
+          )}
+        </nav>
+      </header>
+
+      {/* Level-up toast */}
+      {showLevelUp && (
+        <LevelUpToast
+          level={levelUpInfo.level}
+          title={levelUpInfo.title}
+          onDone={() => setShowLevelUp(false)}
+        />
+      )}
+
+      <SignInModal isOpen={isSignInOpen} onClose={() => setIsSignInOpen(false)} onSuccess={handleAuthSuccess} />
+      <SignUpModal isOpen={isSignUpOpen} onClose={() => setIsSignUpOpen(false)} onSuccess={handleAuthSuccess} />
+    </>
+  );
 }
