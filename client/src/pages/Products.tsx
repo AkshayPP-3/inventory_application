@@ -160,6 +160,12 @@ function AddProductModal({ onClose, onAdded, categories }: { onClose: () => void
         }),
       });
       if (!res.ok) throw new Error("Server error");
+      
+      // Update product count and dispatch event for gamification
+      const currentCount = parseInt(localStorage.getItem("productCount") ?? "0", 10);
+      localStorage.setItem("productCount", (currentCount + 1).toString());
+      window.dispatchEvent(new CustomEvent("productAdded"));
+      
       onAdded();
       onClose();
     } catch {
