@@ -135,7 +135,7 @@ export default function Navbar() {
       isCurrentPath(path) ? "text-black" : "text-stone-500 hover:text-black"
     }`;
 
-  const { level, progress, nextFloor, currentFloor } = getLevelInfo(productCount);
+  const { level, progress, nextFloor } = getLevelInfo(productCount);
   const avatarLetter = userEmail ? userEmail[0].toUpperCase() : "U";
 
   // ── Sync level info when productCount changes ──
@@ -173,13 +173,13 @@ export default function Navbar() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Find inventory..."
-                className="h-9 flex-1 min-w-[150px] rounded-full bg-white/50 border border-emerald-200 px-4 text-sm text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-400 transition-all"
+                className="h-9 flex-1 min-w-37.5 rounded-full bg-white/50 border border-emerald-200 px-4 text-sm text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-400 transition-all"
               />
             </form>
 
             {/* Gamification progress */}
             {isLoggedIn && (
-              <div className="flex flex-col items-center leading-none min-w-[120px]">
+              <div className="flex flex-col items-center leading-none min-w-30">
                 <div className="flex items-center gap-1.5 mb-1">
                   <span className="text-[10px] font-black text-emerald-900 uppercase">Lv.{level}</span>
                   <div className="h-1.5 w-16 rounded-full bg-black/10 overflow-hidden">
