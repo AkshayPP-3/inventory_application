@@ -560,6 +560,14 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
+  // Sync search state with URL parameters (for Navbar search)
+  useEffect(() => {
+    const query = searchParams.get("search");
+    if (query !== null) {
+      setSearch(query);
+    }
+  }, [searchParams]);
+
   // ── Apply filters + search ───────────────────────────────────────────────────
   function applyFilters(source: Product[], f: Filters, q: string) {
     let list = [...source];

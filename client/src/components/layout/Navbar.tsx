@@ -165,16 +165,27 @@ export default function Navbar() {
           </ul>
 
           {/* Desktop Search & Levels (Pushed to center-right) */}
-          <div className="hidden md:flex flex-1 items-center justify-center gap-8 px-4">
+          <div className="hidden md:flex flex-1 items-center justify-center gap-6 px-4">
             {/* Search */}
             <form onSubmit={handleSearch} className="flex items-center gap-2 max-w-md w-full">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Find inventory..."
-                className="h-9 flex-1 min-w-37.5 rounded-full bg-white/50 border border-emerald-200 px-4 text-sm text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-400 transition-all"
-              />
+              <div className="relative flex-1 group">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search"
+                  className="h-9 w-full rounded-full bg-white/50 border border-emerald-200 pl-4 pr-10 text-sm text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-400 transition-all"
+                />
+                <button
+                  type="submit"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full text-emerald-700 hover:bg-emerald-100 transition-colors"
+                  title="Search"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                  </svg>
+                </button>
+              </div>
             </form>
 
             {/* Gamification progress */}
@@ -300,13 +311,23 @@ export default function Navbar() {
 
               {/* Mobile Search */}
               <form onSubmit={handleSearch} className="flex items-center gap-2 px-1">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search products..."
-                  className="h-11 flex-1 rounded-xl bg-stone-100 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
-                />
+                <div className="relative flex-1 group">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search"
+                    className="h-11 w-full rounded-xl bg-stone-100 pl-4 pr-12 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
+                  />
+                  <button
+                    type="submit"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-500 text-white shadow-sm active:scale-90 transition-all"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                    </svg>
+                  </button>
+                </div>
               </form>
 
               {/* Mobile Auth (if not logged in) */}
