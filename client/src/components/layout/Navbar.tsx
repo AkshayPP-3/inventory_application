@@ -65,13 +65,15 @@ export default function Navbar() {
     const count = parseInt(localStorage.getItem(productCountKey) ?? "0", 10);
     setProductCount(count);
     prevLevelRef.current = getLevelInfo(count).level;
-  }, []);
+  }, [isLoggedIn, userEmail]);
 
   // ── Listen for product additions across the app ──────────────────────────────
   // Dispatch a "productAdded" CustomEvent from wherever you add a product
   useEffect(() => {
     const handleProductAdded = () => {
-      const newCount = parseInt(localStorage.getItem("productCount") ?? "0", 10);
+      const email = localStorage.getItem("userEmail") ?? "";
+      const productCountKey = email ? `productCount_${email}` : "productCount";
+      const newCount = parseInt(localStorage.getItem(productCountKey) ?? "0", 10);
       setProductCount(newCount);
 
       const prevLevel = prevLevelRef.current;
@@ -134,6 +136,11 @@ export default function Navbar() {
 
   const { level, progress, nextFloor, currentFloor } = getLevelInfo(productCount);
   const avatarLetter = userEmail ? userEmail[0].toUpperCase() : "U";
+
+  // ── Sync level info when productCount changes ──
+  useEffect(() => {
+    prevLevelRef.current = level;
+  }, [productCount, level]);
 
   return (
     <>

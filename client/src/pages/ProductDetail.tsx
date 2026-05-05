@@ -68,6 +68,20 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [productCount, setProductCount] = useState(0);
+
+  // Gamification helpers (synced with Navbar)
+  const LEVEL_THRESHOLDS = [0, 3, 7, 13, 21, 31];
+  function getLevelInfo(count: number) {
+    let level = 0;
+    for (let i = 0; i < LEVEL_THRESHOLDS.length; i++) {
+      if (count >= LEVEL_THRESHOLDS[i]) level = i + 1;
+    }
+    const currentFloor = LEVEL_THRESHOLDS[level - 1] ?? 0;
+    const nextFloor = LEVEL_THRESHOLDS[level] ?? currentFloor + 1;
+    const progress = Math.min(100, Math.round(((count - currentFloor) / (nextFloor - currentFloor)) * 100));
+    return { level, progress, nextFloor, currentFloor };
+  }
 
   const fetchProduct = async () => {
     if (!id) {
@@ -111,7 +125,14 @@ export default function ProductDetail() {
 
   useEffect(() => {
     fetchProduct();
+    
+    // Load local count for progress bar
+    const email = localStorage.getItem("userEmail") ?? "";
+    const key = email ? `productCount_${email}` : "productCount";
+    setProductCount(parseInt(localStorage.getItem(key) ?? "0", 10));
   }, [id]);
+
+  const { level, progress, nextFloor, currentFloor } = getLevelInfo(productCount);
 
   if (loading) {
     return (
@@ -166,6 +187,13 @@ export default function ProductDetail() {
       });
 
       if (res.ok) {
+        // Update product count tied to user email
+        const userEmail = localStorage.getItem("userEmail") ?? "";
+        const productCountKey = userEmail ? `productCount_${userEmail}` : "productCount";
+        const currentCount = parseInt(localStorage.getItem(productCountKey) ?? "0", 10);
+        localStorage.setItem(productCountKey, Math.max(0, currentCount - 1).toString());
+        window.dispatchEvent(new CustomEvent("productAdded")); // Notify Navbar to refresh count
+
         navigate("/products");
       } else {
         alert("Failed to delete product. " + (res.status === 401 ? "Unauthorized." : ""));
@@ -251,6 +279,25 @@ export default function ProductDetail() {
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="mt-8 flex justify-center">
+        <div className="bg-white rounded-2xl shadow-sm border border-stone-200 px-6 py-4 flex flex-col items-center min-w-[300px]">
+          <span className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Inventory Level Progress</span>
+          <div className="flex items-center gap-3 w-full">
+            <span className="text-sm font-black text-stone-900">Lv.{level}</span>
+            <div className="flex-1 h-3 bg-stone-100 rounded-full overflow-hidden border border-stone-200">
+              <div 
+                className="h-full bg-linear-to-r from-lime-400 to-emerald-500 transition-all duration-1000 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <span className="text-sm font-black text-stone-900">Lv.{level + 1}</span>
+          </div>
+          <p className="text-[10px] text-stone-400 mt-2 font-medium">
+            {productCount - currentFloor} / {nextFloor - currentFloor} products for next level
+          </p>
         </div>
       </div>
 
