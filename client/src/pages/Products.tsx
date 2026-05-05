@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { getApiUrl } from "../lib/api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Product {
@@ -113,8 +114,7 @@ function AddProductModal({ onClose, onAdded, categories }: { onClose: () => void
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-        const res = await fetch(`${apiUrl}/api/categories`);
+        const res = await fetch(getApiUrl("/api/categories"));
         if (!res.ok) return;
         const data = await res.json();
         const map: Record<string, number> = {};
@@ -143,10 +143,9 @@ function AddProductModal({ onClose, onAdded, categories }: { onClose: () => void
         return;
       }
 
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
       const categoryId = categoryMap[form.category] || null;
       
-      const res = await fetch(`${apiUrl}/api/products`, {
+      const res = await fetch(getApiUrl("/api/products"), {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -488,13 +487,11 @@ export default function ProductsPage() {
   async function fetchProducts() {
     setLoading(true); setError("");
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-      
       // Fetch products from API with 10s timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      const res = await fetch(`${apiUrl}/api/products`, { signal: controller.signal });
+      const res = await fetch(getApiUrl("/api/products"), { signal: controller.signal });
       clearTimeout(timeoutId);
       
       if (!res.ok) {
@@ -520,7 +517,7 @@ export default function ProductsPage() {
       if (err.name === "AbortError") {
         errorMsg = "Request timeout - server took too long to respond.";
       } else if (err.message?.includes("Failed to fetch")) {
-        errorMsg = "Network error - is the server running on http://localhost:3000?";
+        errorMsg = `Network error - is the server running on ${getApiUrl()}?`;
       }
       setError(errorMsg);
       console.error("[Products Fetch Error]", err);
@@ -532,11 +529,10 @@ export default function ProductsPage() {
   // ── Fetch categories ───────────────────────────────────────────────────────
   async function fetchCategories() {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      const res = await fetch(`${apiUrl}/api/categories`, { signal: controller.signal });
+      const res = await fetch(getApiUrl("/api/categories"), { signal: controller.signal });
       clearTimeout(timeoutId);
       
       if (!res.ok) {
