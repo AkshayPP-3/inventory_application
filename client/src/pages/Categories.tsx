@@ -611,7 +611,6 @@ function AddCategoryModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
 
 // ─── Category Card ──────
 function CategoryCard({
-  id,
   name,
   count,
   index,
