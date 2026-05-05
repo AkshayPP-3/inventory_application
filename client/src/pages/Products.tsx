@@ -362,64 +362,66 @@ function FilterPanel({
   };
 
   return (
-    <aside className="bg-white rounded-2xl shadow-md p-6 h-fit sticky top-6">
+    <div className="bg-white rounded-2xl shadow-md p-6 h-fit lg:sticky lg:top-6">
       <p className="font-extrabold text-stone-900 text-base mb-5" style={{ fontFamily: "'Syne', sans-serif" }}>
         Filters
       </p>
 
-      {/* Sort by price */}
-      <div className="mb-5">
-        <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2.5">Sort by Price</p>
-        <div className="space-y-1.5">
-          {[["asc", "Low → High"], ["desc", "High → Low"]].map(([val, label]) => (
-            <label key={val} className="flex items-center gap-2.5 cursor-pointer group">
-              <div
-                onClick={() => onChange({ ...filters, priceSort: filters.priceSort === val ? "" : val as "asc" | "desc" })}
-                className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
-                  filters.priceSort === val
-                    ? "bg-stone-900 border-stone-900"
-                    : "border-stone-300 group-hover:border-stone-500"
-                }`}
-              >
-                {filters.priceSort === val && <span className="text-lime-300 text-[9px] font-bold">✓</span>}
-              </div>
-              <span className="text-sm text-stone-600">{label}</span>
-            </label>
-          ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-x-8">
+        {/* Sort by price */}
+        <div className="mb-5">
+          <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2.5">Sort by Price</p>
+          <div className="space-y-1.5">
+            {[["asc", "Low → High"], ["desc", "High → Low"]].map(([val, label]) => (
+              <label key={val} className="flex items-center gap-2.5 cursor-pointer group">
+                <div
+                  onClick={() => onChange({ ...filters, priceSort: filters.priceSort === val ? "" : val as "asc" | "desc" })}
+                  className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+                    filters.priceSort === val
+                      ? "bg-stone-900 border-stone-900"
+                      : "border-stone-300 group-hover:border-stone-500"
+                  }`}
+                >
+                  {filters.priceSort === val && <span className="text-lime-300 text-[9px] font-bold">✓</span>}
+                </div>
+                <span className="text-sm text-stone-600">{label}</span>
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Sort by name */}
-      <div className="mb-5">
-        <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2.5">Sort by Name</p>
-        <div className="space-y-1.5">
-          {[["asc", "A → Z"], ["desc", "Z → A"]].map(([val, label]) => (
-            <label key={val} className="flex items-center gap-2.5 cursor-pointer group">
-              <div
-                onClick={() => onChange({ ...filters, nameSort: filters.nameSort === val ? "" : val as "asc" | "desc" })}
-                className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
-                  filters.nameSort === val
-                    ? "bg-stone-900 border-stone-900"
-                    : "border-stone-300 group-hover:border-stone-500"
-                }`}
-              >
-                {filters.nameSort === val && <span className="text-lime-300 text-[9px] font-bold">✓</span>}
-              </div>
-              <span className="text-sm text-stone-600">{label}</span>
-            </label>
-          ))}
+        {/* Sort by name */}
+        <div className="mb-5">
+          <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2.5">Sort by Name</p>
+          <div className="space-y-1.5">
+            {[["asc", "A → Z"], ["desc", "Z → A"]].map(([val, label]) => (
+              <label key={val} className="flex items-center gap-2.5 cursor-pointer group">
+                <div
+                  onClick={() => onChange({ ...filters, nameSort: filters.nameSort === val ? "" : val as "asc" | "desc" })}
+                  className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+                    filters.nameSort === val
+                      ? "bg-stone-900 border-stone-900"
+                      : "border-stone-300 group-hover:border-stone-500"
+                  }`}
+                >
+                  {filters.nameSort === val && <span className="text-lime-300 text-[9px] font-bold">✓</span>}
+                </div>
+                <span className="text-sm text-stone-600">{label}</span>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Filter by category */}
       <div className="mb-6">
         <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2.5">Filter by Category</p>
-        <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+        <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-1 lg:gap-0">
           {categories.map((cat) => {
             const checked = filters.categories.includes(cat);
             const dot = CATEGORY_DOT[cat] ?? "bg-stone-300";
             return (
-              <label key={cat} className="flex items-center gap-2.5 cursor-pointer group">
+              <label key={cat} className="flex items-center gap-2.5 cursor-pointer group py-0.5">
                 <div
                   onClick={() => toggleCat(cat)}
                   className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
@@ -429,31 +431,32 @@ function FilterPanel({
                   {checked && <span className="text-lime-300 text-[9px] font-bold">✓</span>}
                 </div>
                 <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
-                <span className="text-sm text-stone-600">{cat}</span>
+                <span className="text-sm text-stone-600 truncate">{cat}</span>
               </label>
             );
           })}
         </div>
       </div>
 
-      {/* Apply */}
-      <button
-        onClick={onApply}
-        className="w-full bg-stone-900 text-lime-300 font-semibold py-2.5 rounded-full text-sm transition-all duration-200 hover:bg-stone-700 active:scale-95"
-      >
-        Apply Filters
-      </button>
-
-      {/* Reset */}
-      {(filters.priceSort || filters.nameSort || filters.categories.length > 0) && (
+      <div className="flex gap-2">
         <button
-          onClick={() => { onChange({ priceSort: "", nameSort: "", categories: [] }); onApply(); }}
-          className="w-full mt-2 text-stone-400 text-xs hover:text-stone-600 transition-colors py-1"
+          onClick={onApply}
+          className="flex-1 bg-stone-900 text-lime-300 font-semibold py-2.5 rounded-full text-sm transition-all duration-200 hover:bg-stone-700 active:scale-95"
         >
-          Clear all filters
+          Apply
         </button>
-      )}
-    </aside>
+
+        {/* Reset */}
+        {(filters.priceSort || filters.nameSort || filters.categories.length > 0) && (
+          <button
+            onClick={() => { onChange({ priceSort: "", nameSort: "", categories: [] }); onApply(); }}
+            className="px-4 text-stone-400 text-xs hover:text-stone-600 border border-stone-200 rounded-full transition-colors py-1"
+          >
+            Reset
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -658,11 +661,11 @@ export default function ProductsPage() {
           </div>
 
           {/* Body: filter sidebar + product grid */}
-          <div className="flex gap-8 items-start">
+          <div className="flex flex-col lg:flex-row gap-8 items-start">
 
             {/* ── Filter sidebar ────────────────────────────────────────────── */}
             <div
-              className={`w-56 shrink-0 transition-all duration-700 delay-100 ${
+              className={`w-full lg:w-56 shrink-0 transition-all duration-700 delay-100 ${
                 visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
               }`}
             >
@@ -675,11 +678,11 @@ export default function ProductsPage() {
             </div>
 
             {/* ── Product grid ──────────────────────────────────────────────── */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 w-full">
               {loading && (
-                <div className="flex flex-wrap gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                   {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="bg-white/60 rounded-2xl h-56 w-44 animate-pulse" />
+                    <div key={i} className="bg-white/60 rounded-2xl h-56 animate-pulse" />
                   ))}
                 </div>
               )}
@@ -703,7 +706,7 @@ export default function ProductsPage() {
                   className={`grid gap-5 transition-all duration-700 delay-200 ${
                     visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
                   }`}
-                  style={{ gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))" }}
+                  style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}
                 >
                   {displayed.map((p, i) => (
                     <ProductCard 
