@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import EditProductModal from "../components/modals/EditProductModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Product {
@@ -8,6 +9,7 @@ interface Product {
   price: string | number;
   image: string;
   category: string;
+  categoryId?: number;
   brand?: string;
   quantity?: number;
 }
@@ -64,47 +66,49 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const fetchProduct = async () => {
+    if (!id) {
+      setError("Product ID is missing");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+
+      const res = await fetch(`${apiUrl}/api/products/${id}`, {
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (!res.ok) throw new Error(`Product not found`);
+      const data = await res.json();
+      // Normalize backend shape: category may be an object { categoryName }
+      const normalized = {
+        ...data,
+        category: data?.category?.categoryName || data?.category || "Uncategorized",
+        categoryId: data?.categoryId || data?.category?.id,
+        image: data?.image || "",
+      } as Product & any;
+      setProduct(normalized);
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        setError("Request timeout - server took too long");
+      } else {
+        setError(err.message || "Could not load product. Check your connection.");
+      }
+      console.error(`[Product Detail Error]`, err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      if (!id) {
-        setError("Product ID is missing");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000);
-
-        const res = await fetch(`${apiUrl}/api/products/${id}`, {
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeout);
-
-        if (!res.ok) throw new Error(`Product not found`);
-        const data = await res.json();
-        // Normalize backend shape: category may be an object { categoryName }
-        const normalized = {
-          ...data,
-          category: data?.category?.categoryName || data?.category || "Uncategorized",
-          image: data?.image || "",
-        } as Product & any;
-        setProduct(normalized);
-      } catch (err: any) {
-        if (err.name === "AbortError") {
-          setError("Request timeout - server took too long");
-        } else {
-          setError(err.message || "Could not load product. Check your connection.");
-        }
-        console.error(`[Product Detail Error]`, err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProduct();
   }, [id]);
 
@@ -228,7 +232,13 @@ export default function ProductDetail() {
             )}
 
             {/* Action buttons */}
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-end items-center gap-3 pt-4">
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="bg-stone-900 text-lime-300 font-bold px-8 py-3 rounded-xl hover:bg-stone-700 transition-all duration-200 active:scale-95 shadow-lg shadow-lime-900/10"
+              >
+                ✏️ Edit Product
+              </button>
               <button
                 onClick={handleDelete}
                 className="bg-red-600 text-white font-bold px-8 py-3 rounded-xl hover:bg-red-700 transition-all duration-200 active:scale-95 shadow-lg shadow-red-200"
@@ -239,6 +249,15 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {product && (
+        <EditProductModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onProductUpdated={fetchProduct}
+          product={product}
+        />
+      )}
     </main>
   );
 }
