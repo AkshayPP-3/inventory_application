@@ -86,7 +86,13 @@ export default function ProductDetail() {
 
         if (!res.ok) throw new Error(`Product not found`);
         const data = await res.json();
-        setProduct(data);
+        // Normalize backend shape: category may be an object { categoryName }
+        const normalized = {
+          ...data,
+          category: data?.category?.categoryName || data?.category || "Uncategorized",
+          image: data?.image || "",
+        } as Product & any;
+        setProduct(normalized);
       } catch (err: any) {
         if (err.name === "AbortError") {
           setError("Request timeout - server took too long");

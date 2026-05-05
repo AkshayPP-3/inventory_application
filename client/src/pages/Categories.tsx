@@ -494,9 +494,6 @@ function CategoryDetailsModal({
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-stone-900 truncate">{product.name}</p>
-                        <p className="text-xs text-stone-400">
-                          ID: {product.id}
-                        </p>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="font-extrabold text-stone-900">${price.toFixed(2)}</p>
