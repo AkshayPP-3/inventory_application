@@ -609,13 +609,87 @@ function AddCategoryModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
   );
 }
 
+// ─── Edit Category Modal ────
+function EditCategoryModal({ 
+  category, 
+  onClose, 
+  onUpdated 
+}: { 
+  category: { id: number; categoryName: string }; 
+  onClose: () => void; 
+  onUpdated: () => void; 
+}) {
+  const [name, setName] = useState(category.categoryName);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function submit() {
+    if (!name.trim()) { setError("Category name is required."); return; }
+    setLoading(true); setError("");
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Unauthorized");
+
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const res = await fetch(`${apiUrl}/api/categories/${category.id}`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({ categoryName: name.trim() }),
+      });
+      if (!res.ok) throw new Error("Server error");
+      onUpdated();
+      onClose();
+    } catch {
+      setError("Could not update category.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: "rgba(28,24,20,0.55)", backdropFilter: "blur(4px)" }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 relative animate-[slideUp_0.25s_ease-out]">
+        <button onClick={onClose} className="absolute top-5 right-5 w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 hover:bg-stone-200 transition">✕</button>
+        <h2 className="font-extrabold text-stone-900 text-2xl mb-1">Edit Name</h2>
+        <p className="text-stone-400 text-sm mb-7">Update the category name.</p>
+        
+        {error && <div className="bg-red-50 text-red-600 text-sm rounded-xl px-4 py-2.5 mb-5">{error}</div>}
+
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+          className="w-full border border-stone-200 rounded-xl px-4 py-2.5 text-stone-900 text-sm focus:ring-2 focus:ring-lime-300 outline-none transition mb-7"
+        />
+
+        <button
+          onClick={submit}
+          disabled={loading}
+          className="w-full bg-stone-900 text-lime-300 font-semibold py-3 rounded-full text-sm hover:bg-stone-700 active:scale-95 transition disabled:opacity-50"
+        >
+          {loading ? "Saving…" : "Save Changes"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Category Card ──────
 function CategoryCard({
+  id,
   name,
   count,
   index,
   onClick,
   onDelete,
+  onEdit,
 }: {
   id: number;
   name: string;
@@ -623,6 +697,7 @@ function CategoryCard({
   index: number;
   onClick: () => void;
   onDelete: () => void;
+  onEdit: () => void;
 }) {
   const meta = getCategoryMeta(name);
   const offset = index % 3 === 1;
@@ -634,19 +709,34 @@ function CategoryCard({
         offset ? "mt-4" : ""
       } ${index % 2 === 0 ? "hover:-rotate-1" : "hover:rotate-1"}`}
     >
-      {/* Delete Button */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete();
-        }}
-        className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-500 hover:text-white active:scale-90"
-        title="Delete Category"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" />
-        </svg>
-      </button>
+      {/* Action Buttons (Hover) */}
+      <div className="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
+          className="w-8 h-8 rounded-full bg-stone-50 text-stone-600 flex items-center justify-center hover:bg-stone-900 hover:text-white transition active:scale-90"
+          title="Edit Category"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition active:scale-90"
+          title="Delete Category"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" />
+          </svg>
+        </button>
+      </div>
 
       {/* Gradient bar */}
       <div className={`h-2 rounded-full bg-lnear-to-r ${meta.gradient} mb-4`} />
@@ -693,6 +783,7 @@ export default function CategoriesPage() {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [editingCategory, setEditingCategory] = useState<{id: number, categoryName: string} | null>(null);
 
   // ── Fetch categories + product counts ────────
   async function fetchData() {
@@ -785,6 +876,13 @@ export default function CategoriesPage() {
     <>
       {showModal && (
         <AddCategoryModal onClose={() => setShowModal(false)} onAdded={fetchData} />
+      )}
+      {editingCategory && (
+        <EditCategoryModal 
+          category={editingCategory} 
+          onClose={() => setEditingCategory(null)} 
+          onUpdated={fetchData} 
+        />
       )}
 
       <main className="relative min-h-screen overflow-hidden bg-amber-50">
@@ -914,6 +1012,7 @@ export default function CategoriesPage() {
                   index={i}
                   onClick={() => setSelectedCategory(cat.categoryName)}
                   onDelete={() => handleDeleteCategory(cat.id, cat.categoryName)}
+                  onEdit={() => setEditingCategory(cat)}
                 />
               ))}
             </div>
