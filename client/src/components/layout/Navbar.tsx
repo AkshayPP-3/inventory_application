@@ -60,7 +60,9 @@ export default function Navbar() {
     const email = localStorage.getItem("userEmail") ?? "";
     setUserEmail(email);
 
-    const count = parseInt(localStorage.getItem("productCount") ?? "0", 10);
+    // Load productCount tied to this email account
+    const productCountKey = email ? `productCount_${email}` : "productCount";
+    const count = parseInt(localStorage.getItem(productCountKey) ?? "0", 10);
     setProductCount(count);
     prevLevelRef.current = getLevelInfo(count).level;
   }, []);

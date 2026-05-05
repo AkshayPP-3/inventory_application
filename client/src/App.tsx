@@ -8,13 +8,19 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     const email = params.get("email");
+    const error = params.get("error");
     
-    if (token) {
+    if (error) {
+      // OAuth error - show it in localStorage for Navbar to display
+      localStorage.setItem("authError", error);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+    
+    if (token && email) {
       // Store token and email in localStorage
       localStorage.setItem("token", token);
-      if (email) {
-        localStorage.setItem("userEmail", email);
-      }
+      localStorage.setItem("userEmail", email);
       // Remove params from URL to clean it up
       window.history.replaceState({}, document.title, window.location.pathname);
     }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
 interface SignUpModalProps {
@@ -19,6 +19,17 @@ export default function SignUpModal({
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Check for OAuth errors on modal open
+  useEffect(() => {
+    if (isOpen) {
+      const authError = localStorage.getItem("authError");
+      if (authError) {
+        setError(`${authError}. Please try signing in instead.`);
+        localStorage.removeItem("authError");
+      }
+    }
+  }, [isOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
