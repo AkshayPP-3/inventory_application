@@ -142,6 +142,35 @@ export default function ProductDetail() {
 
   const colorClass = CATEGORY_COLORS[product.category] ?? "bg-stone-100 text-stone-500";
 
+  const handleDelete = async () => {
+    if (!confirm(`Are you sure you want to delete "${product.name}"?`)) return;
+    
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please sign in to delete products");
+        return;
+      }
+
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const res = await fetch(`${apiUrl}/api/products/${product.id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        navigate("/products");
+      } else {
+        alert("Failed to delete product. " + (res.status === 401 ? "Unauthorized." : ""));
+      }
+    } catch (err) {
+      console.error("[Delete Error]", err);
+      alert("An error occurred while deleting.");
+    }
+  };
+
   return (
     <main className="min-h-screen bg-cyan-50 py-8">
       <div className="max-w-2xl mx-auto px-4">
@@ -199,12 +228,12 @@ export default function ProductDetail() {
             )}
 
             {/* Action buttons */}
-            <div className="flex gap-3 pt-4">
+            <div className="flex justify-end pt-4">
               <button
-                onClick={() => navigate("/products")}
-                className="flex-1 bg-stone-900 text-lime-300 font-semibold py-3 rounded-xl hover:bg-stone-700 transition"
+                onClick={handleDelete}
+                className="bg-red-600 text-white font-bold px-8 py-3 rounded-xl hover:bg-red-700 transition-all duration-200 active:scale-95 shadow-lg shadow-red-200"
               >
-                Continue Shopping
+                🗑️ Delete Product
               </button>
             </div>
           </div>

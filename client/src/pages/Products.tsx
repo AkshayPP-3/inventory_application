@@ -290,34 +290,10 @@ function ProductCard({ product, index, onClick }: { product: Product; index: num
 
   // Local UI state
   const [imageError, setImageError] = useState(false);
-  const [showActions, setShowActions] = useState(false);
-
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!confirm(`Delete "${product.name}"?`)) return;
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("Please sign in to delete products");
-      return;
-    }
-    try {
-      const res = await fetch(`${apiUrl}/api/products/${product.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) window.location.reload();
-      else alert("Could not delete product");
-    } catch (err) {
-      console.error(err);
-      alert("Could not delete product");
-    }
-  };
 
   return (
     <div
-      onClick={() => setShowActions((s) => !s)}
+      onClick={onClick}
       className="bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
       style={{ animationDelay: `${index * 40}ms` }}
     >
@@ -354,24 +330,6 @@ function ProductCard({ product, index, onClick }: { product: Product; index: num
             <span className="text-xs text-stone-400">Qty: {product.quantity}</span>
           )}
         </div>
-
-        {/* Actions: visible when card is clicked */}
-        {showActions && (
-          <div className="mt-3 flex items-center gap-2">
-            <button
-              onClick={(e) => { e.stopPropagation(); onClick(); }}
-              className="flex-1 bg-stone-900 text-lime-300 font-semibold py-2 rounded-lg text-sm"
-            >
-              View
-            </button>
-            <button
-              onClick={handleDelete}
-              className="w-24 bg-red-50 text-red-600 font-medium py-2 rounded-lg text-sm"
-            >
-              🗑️ Delete
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
