@@ -683,7 +683,6 @@ function EditCategoryModal({
 
 // ─── Category Card ──────
 function CategoryCard({
-  id,
   name,
   count,
   index,
