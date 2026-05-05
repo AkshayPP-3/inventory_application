@@ -27,7 +27,7 @@ app.use(cors());
 app.use(passport.initialize());
 
 // Serve static files from the React app
-const clientDistPath = path.join(process.cwd(), "client/dist");
+const clientDistPath = path.join(__dirname, "../../client/dist");
 app.use(express.static(clientDistPath));
 
 app.use("/api/auth", authRoutes);
@@ -67,8 +67,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 // Catch-all: serve index.html for any request that doesn't match an API route
 app.get("*", (req, res) => {
     if (!req.path.startsWith("/api")) {
-        const indexPath = path.join(process.cwd(), "client/dist/index.html");
-        res.sendFile(indexPath);
+        res.sendFile(path.join(clientDistPath, "index.html"));
     }
 });
 
