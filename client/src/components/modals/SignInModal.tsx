@@ -83,7 +83,7 @@ export default function SignInModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(28,24,20,0.55)", backdropFilter: "blur(4px)" }}>
-      <div className="relative w-full max-w-md rounded-3xl bg-gradient-to-br from-white via-lime-50 to-green-50 p-8 shadow-2xl border border-lime-200">
+      <div className="relative w-full max-w-md rounded-3xl bg-linear-to-br from-white via-lime-50 to-green-50 p-8 shadow-2xl border border-lime-200">
         <button
           onClick={onClose}
           className="absolute right-4 top-4 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-stone-600 transition"
