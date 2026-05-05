@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import EditProductModal from "../components/modals/EditProductModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -181,9 +182,12 @@ export default function ProductDetail() {
         {/* Back button */}
         <button
           onClick={() => navigate("/products")}
-          className="mb-6 flex items-center gap-2 text-stone-600 hover:text-stone-900 transition font-medium"
+          className="group mb-8 flex items-center gap-2.5 text-stone-500 hover:text-stone-900 transition-all duration-200"
         >
-          ← Back to Products
+          <div className="flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm border border-stone-200 group-hover:border-stone-300 group-hover:shadow-md transition-all">
+            <ArrowLeft size={18} strokeWidth={2.5} />
+          </div>
+          <span className="font-bold text-sm uppercase tracking-widest">Back to Products</span>
         </button>
 
         {/* Product card */}
