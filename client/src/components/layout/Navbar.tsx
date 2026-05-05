@@ -45,6 +45,7 @@ export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSignInOpen, setIsSignInOpen] = useState(false);
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Gamification
   const [productCount, setProductCount] = useState(0);
@@ -145,15 +146,15 @@ export default function Navbar() {
   return (
     <>
       <header className="sticky top-0 z-20 bg-[#93ff96] text-black shadow-md">
-        <nav className="mx-auto flex h-16 w-full max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
+        <nav className="mx-auto flex h-16 w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
 
           {/* Logo */}
-          <button type="button" onClick={() => navigate("/")} className="text-black font-bold tracking-wide">
-            FreshStock
+          <button type="button" onClick={() => navigate("/")} className="text-black font-extrabold tracking-wide text-lg mr-8 shrink-0">
+            Fresh<span className="text-emerald-700">Stock</span>
           </button>
 
-          {/* Nav links */}
-          <ul className="hidden items-center gap-5 md:flex">
+          {/* Desktop Nav links */}
+          <ul className="hidden items-center gap-6 lg:flex">
             {["/", "/products", "/categories"].map((path, i) => (
               <li key={path}>
                 <button type="button" onClick={() => navigate(path)} className={navLinkClass(path)}>
@@ -163,119 +164,164 @@ export default function Navbar() {
             ))}
           </ul>
 
-          {/* Search */}
-          <form onSubmit={handleSearch} className="ml-auto hidden items-center gap-2 md:flex">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search"
-              className="h-9 w-64 rounded-md bg-white px-3 text-sm text-slate-800 outline-none"
-            />
-            <button
-              type="submit"
-              className="h-9 rounded-md bg-lime-400 px-4 text-sm font-semibold text-emerald-900 transition hover:bg-white/25"
-            >
-              Search
-            </button>
-          </form>
+          {/* Desktop Search & Levels (Pushed to center-right) */}
+          <div className="hidden md:flex flex-1 items-center justify-center gap-8 px-4">
+            {/* Search */}
+            <form onSubmit={handleSearch} className="flex items-center gap-2 max-w-md w-full">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Find inventory..."
+                className="h-9 flex-1 min-w-[150px] rounded-full bg-white/50 border border-emerald-200 px-4 text-sm text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-400 transition-all"
+              />
+            </form>
 
-          {/* ── Gamification badge ── */}
-          {isLoggedIn && (
-            <div className="hidden md:flex flex-col items-center leading-none min-w-72">
-              <span className="text-[10px] font-semibold text-emerald-900 uppercase tracking-wider">
-                Lv.{level}
-              </span>
-              <div className="mt-1 h-1.5 w-16 rounded-full bg-black/20 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-emerald-700 transition-all duration-500"
-                  style={{ width: `${progress}%` }}
-                />
+            {/* Gamification progress */}
+            {isLoggedIn && (
+              <div className="flex flex-col items-center leading-none min-w-[120px]">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className="text-[10px] font-black text-emerald-900 uppercase">Lv.{level}</span>
+                  <div className="h-1.5 w-16 rounded-full bg-black/10 overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-600 transition-all duration-700 ease-out"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <span className="text-[10px] font-black text-emerald-900 uppercase">Lv.{level + 1}</span>
+                </div>
+                <span className="text-[9px] font-medium text-emerald-800/60 uppercase tracking-tighter">
+                  {nextFloor - productCount} more until upgrade
+                </span>
               </div>
-              <span className="text-[9px] text-emerald-900/70 mt-0.5">
-                {productCount - currentFloor}/{nextFloor - currentFloor} to Lv.{level + 1}
-              </span>
-            </div>
-          )}
+            )}
+          </div>
 
+          {/* ── Right side stuff (Profile / Auth / Hamburger) ── */}
+          <div className="flex items-center gap-3 ml-auto">
+            {isLoggedIn ? (
+              <div ref={profileMenuRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsProfileOpen((o) => !o)}
+                  aria-label="Open user menu"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 ring-2 ring-white/20 text-sm font-bold text-white hover:ring-emerald-400 transition-all shadow-md active:scale-90"
+                >
+                  {avatarLetter}
+                </button>
 
-
-          {/* ── User profile / auth buttons ── */}
-          {isLoggedIn ? (
-            <div ref={profileMenuRef} className="relative ml-2">
-              <button
-                type="button"
-                onClick={() => setIsProfileOpen((o) => !o)}
-                aria-label="Open user menu"
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white hover:ring-2 hover:ring-emerald-400 transition"
-              >
-                {avatarLetter}
-              </button>
-
-              {isProfileOpen && (
-                <div className="absolute right-0 top-full z-30 mt-2 w-64 rounded-xl bg-white shadow-xl border border-slate-100 overflow-hidden">
-                  {/* Profile header */}
-                  <div className="flex items-center gap-3 px-4 py-3 bg-lime-50 border-b border-slate-100">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white font-bold text-sm shrink-0">
-                      {avatarLetter}
+                {isProfileOpen && (
+                  <div className="absolute right-0 top-full z-30 mt-3 w-64 rounded-2xl bg-white shadow-2xl border border-slate-100 overflow-hidden animate-[slideUp_0.2s_ease-out]">
+                    <div className="flex items-center gap-3 px-4 py-4 bg-lime-50 border-b border-emerald-100">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white font-bold text-sm shrink-0 shadow-sm">
+                        {avatarLetter}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-slate-800 truncate">{userEmail || "Member"}</p>
+                        <p className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider">{getLevelInfo(productCount).title}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-800 truncate">{userEmail || "User"}</p>
+
+                    <div className="px-4 py-3 border-b border-slate-50">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[10px] font-black text-emerald-900 uppercase">Progress</span>
+                        <span className="text-[10px] font-bold text-slate-400">{progress}%</span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          className="h-full bg-linear-to-r from-emerald-500 to-lime-400 transition-all duration-1000"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                      <p className="mt-2 text-[10px] text-slate-400 font-medium">
+                        Added {productCount} items so far
+                      </p>
+                    </div>
+
+                    <div className="p-2">
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full rounded-xl px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 hover:text-red-600 transition-all text-left flex items-center gap-2"
+                      >
+                        <span>🚪</span> Sign Out
+                      </button>
                     </div>
                   </div>
+                )}
+              </div>
+            ) : (
+              <div className="hidden items-center gap-2 sm:flex">
+                <button
+                  type="button"
+                  onClick={() => setIsSignInOpen(true)}
+                  className="h-9 px-4 text-sm font-bold text-emerald-900 hover:bg-white/20 rounded-lg transition"
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsSignUpOpen(true)}
+                  className="h-9 px-5 bg-stone-900 text-lime-300 text-sm font-bold rounded-lg shadow-lg hover:bg-stone-800 active:scale-95 transition"
+                >
+                  Get Started
+                </button>
+              </div>
+            )}
 
-                  {/* Level info inside dropdown */}
-                  <div className="px-4 py-3 border-b border-slate-100">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-emerald-700">
-                        Lv.{level}
-                      </span>
-                      <span className="text-xs text-slate-400">{progress}%</span>
-                    </div>
-                    <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-emerald-500 transition-all duration-500"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                    <p className="mt-1 text-[11px] text-slate-400">
-                      {productCount} products added · {nextFloor - productCount} more to Lv.{level + 1}
-                    </p>
-                  </div>
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg bg-white/20 text-emerald-900 hover:bg-white/40 transition"
+            >
+              {isMobileMenuOpen ? "✕" : "☰"}
+            </button>
+          </div>
+        </nav>
 
-                  {/* Logout */}
-                  <div className="px-3 py-2">
+        {/* Mobile Dropdown Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden bg-white border-t border-emerald-100 animate-[slideDown_0.2s_ease-out]">
+            <div className="px-4 py-5 space-y-4">
+              <ul className="space-y-2">
+                {["/", "/products", "/categories"].map((path, i) => (
+                  <li key={path}>
                     <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full rounded-lg px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition text-left"
+                      onClick={() => { navigate(path); setIsMobileMenuOpen(false); }}
+                      className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm ${
+                        isCurrentPath(path) ? "bg-[#93ff96] text-emerald-950" : "bg-stone-50 text-stone-600"
+                      }`}
                     >
-                      🚪 Sign out
+                      {["Home", "Products", "Categories"][i]}
                     </button>
-                  </div>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Mobile Search */}
+              <form onSubmit={handleSearch} className="flex items-center gap-2 px-1">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search products..."
+                  className="h-11 flex-1 rounded-xl bg-stone-100 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
+                />
+              </form>
+
+              {/* Mobile Auth (if not logged in) */}
+              {!isLoggedIn && (
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <button onClick={() => setIsSignInOpen(true)} className="py-3 font-bold text-sm border-2 border-stone-100 rounded-xl">Sign In</button>
+                  <button onClick={() => setIsSignUpOpen(true)} className="py-3 font-bold text-sm bg-stone-900 text-lime-400 rounded-xl">Sign Up</button>
                 </div>
               )}
             </div>
-          ) : (
-            <div className="ml-2 hidden items-center gap-2 md:flex">
-              <button
-                type="button"
-                onClick={() => setIsSignUpOpen(true)}
-                className="h-9 rounded-md bg-white px-3 text-sm font-medium text-black transition hover:bg-white/25"
-              >
-                Sign Up
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsSignInOpen(true)}
-                className="h-9 rounded-md bg-white px-3 text-sm font-medium text-black transition hover:bg-white/25"
-              >
-                Sign In
-              </button>
-            </div>
-          )}
-        </nav>
+          </div>
+        )}
       </header>
+
+      {/* Level-up toast */}
 
       {/* Level-up toast */}
       {showLevelUp && (
