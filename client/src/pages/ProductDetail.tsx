@@ -283,7 +283,7 @@ export default function ProductDetail() {
       </div>
 
       <div className="mt-8 flex justify-center">
-        <div className="bg-white rounded-2xl shadow-sm border border-stone-200 px-6 py-4 flex flex-col items-center min-w-[300px]">
+        <div className="bg-white rounded-2xl shadow-sm border border-stone-200 px-6 py-4 flex flex-col items-center min-w-75">
           <span className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Inventory Level Progress</span>
           <div className="flex items-center gap-3 w-full">
             <span className="text-sm font-black text-stone-900">Lv.{level}</span>
