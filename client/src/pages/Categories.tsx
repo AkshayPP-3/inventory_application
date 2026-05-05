@@ -611,15 +611,19 @@ function AddCategoryModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
 
 // ─── Category Card ──────
 function CategoryCard({
+  id,
   name,
   count,
   index,
   onClick,
+  onDelete,
 }: {
+  id: number;
   name: string;
   count: number;
   index: number;
   onClick: () => void;
+  onDelete: () => void;
 }) {
   const meta = getCategoryMeta(name);
   const offset = index % 3 === 1;
@@ -627,10 +631,24 @@ function CategoryCard({
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-2xl p-5 shadow-md cursor-pointer group transition-all duration-300 hover:-translate-y-2 hover:shadow-xl ${
+      className={`relative bg-white rounded-2xl p-5 shadow-md cursor-pointer group transition-all duration-300 hover:-translate-y-2 hover:shadow-xl ${
         offset ? "mt-4" : ""
       } ${index % 2 === 0 ? "hover:-rotate-1" : "hover:rotate-1"}`}
     >
+      {/* Delete Button */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-500 hover:text-white active:scale-90"
+        title="Delete Category"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" />
+        </svg>
+      </button>
+
       {/* Gradient bar */}
       <div className={`h-2 rounded-full bg-lnear-to-r ${meta.gradient} mb-4`} />
 
@@ -667,7 +685,7 @@ function CategoryCard({
 
 // ─── Main Page ──────
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<{id: number, categoryName: string}[]>([]);
   const [productCounts, setProductCounts] = useState<Record<string, number>>({});
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -693,9 +711,7 @@ export default function CategoriesPage() {
       }
       const categoriesData = await catRes.json();
       
-      // Extract category names
-      const catNames = categoriesData.map((c: any) => c.categoryName);
-      setCategories(catNames);
+      setCategories(categoriesData);
 
       // Fetch products to count per category
       const prodRes = await fetch(`${apiUrl}/api/products`, { signal: controller.signal });
@@ -734,8 +750,37 @@ export default function CategoriesPage() {
   }, []);
 
   const filtered = categories.filter((c) =>
-    c.toLowerCase().includes(search.toLowerCase())
+    c.categoryName.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleDeleteCategory = async (id: number, name: string) => {
+    if (!confirm(`Delete "${name}"? Products in this category will become Uncategorized.`)) return;
+    
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please sign in to delete categories");
+        return;
+      }
+
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const res = await fetch(`${apiUrl}/api/categories/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        fetchData();
+      } else {
+        alert("Failed to delete category");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting category");
+    }
+  };
 
   return (
     <>
@@ -863,11 +908,13 @@ export default function CategoriesPage() {
             >
               {filtered.map((cat, i) => (
                 <CategoryCard
-                  key={cat}
-                  name={cat}
-                  count={productCounts[cat] ?? 0}
+                  key={cat.id}
+                  id={cat.id}
+                  name={cat.categoryName}
+                  count={productCounts[cat.categoryName] ?? 0}
                   index={i}
-                  onClick={() => setSelectedCategory(cat)}
+                  onClick={() => setSelectedCategory(cat.categoryName)}
+                  onDelete={() => handleDeleteCategory(cat.id, cat.categoryName)}
                 />
               ))}
             </div>
