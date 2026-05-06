@@ -1,13 +1,9 @@
 {
   "version": 2,
-  "outputDirectory": "public",
   "builds": [
     {
       "src": "server/src/index.ts",
-      "use": "@vercel/node",
-      "config": {
-        "zeroConfig": true
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
