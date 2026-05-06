@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "cd ../client && npm install && npm run build && cd ../server && prisma generate",
+    "build": "npm --prefix ../client install && npm --prefix ../client run build && prisma generate",
     "postinstall": "prisma generate"
   },
   "author": "",
