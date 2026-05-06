@@ -4,12 +4,15 @@ import { Strategy as GitHubStrategy } from "passport-github2";
 import { prisma } from "../lib/prisma.js";
 import { signToken } from "../utils/jwt.js";
 
+const getBackendUrl = () =>
+  process.env.BACKEND_URL || "http://localhost:3000";
+
 /* GOOGLE */
 passport.use(new GoogleStrategy(
   {
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    callbackURL: "/api/auth/google/callback",
+    callbackURL: `${getBackendUrl()}/api/auth/google/callback`,
   },
   async (accessToken: string, refreshToken: string, profile: GoogleProfile, done: any) => {
     const email = profile.emails?.[0]?.value!;
@@ -31,7 +34,7 @@ passport.use(new GitHubStrategy(
   {
     clientID: process.env.GITHUB_CLIENT_ID!,
     clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    callbackURL: "/api/auth/github/callback",
+    callbackURL: `${getBackendUrl()}/api/auth/github/callback`,
   },
   async (_a: any, _b: any, profile: { emails: { value: string; }[]; username: any; }, done: (arg0: null, arg1: { token: string; email: string; }) => void) => {
     const email =
