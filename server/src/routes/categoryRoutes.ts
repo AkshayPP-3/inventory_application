@@ -6,7 +6,7 @@ import {
   getCategories,
   updateCategory,
 } from "../controllers/categoryController.js";
-import { protect } from "../middleware/auth";
+import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 

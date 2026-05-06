@@ -1,8 +1,8 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy, Profile as GoogleProfile } from "passport-google-oauth20";
 import { Strategy as GitHubStrategy } from "passport-github2";
-import { prisma } from "../lib/prisma";
-import { signToken } from "../utils/jwt";
+import { prisma } from "../lib/prisma.js";
+import { signToken } from "../utils/jwt.js";
 
 /* GOOGLE */
 passport.use(new GoogleStrategy(
