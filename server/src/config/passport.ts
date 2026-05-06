@@ -1,5 +1,5 @@
 import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import { Strategy as GoogleStrategy, Profile as GoogleProfile } from "passport-google-oauth20";
 import { Strategy as GitHubStrategy } from "passport-github2";
 import { prisma } from "../lib/prisma";
 import { signToken } from "../utils/jwt";
@@ -11,7 +11,7 @@ passport.use(new GoogleStrategy(
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     callbackURL: "/api/auth/google/callback",
   },
-  async (_a, _b, profile, done) => {
+  async (accessToken: string, refreshToken: string, profile: GoogleProfile, done: any) => {
     const email = profile.emails?.[0]?.value!;
 
     let user = await prisma.user.findUnique({ where: { email } });
