@@ -1,3 +1,5 @@
+export const API = import.meta.env.VITE_API_URL;
+
 export const getApiUrl = (path: string = "") => {
   // If we are in production (or the same origin), return relative path
   // If we are in development, Vite serves on 5173 but API is on 3000
