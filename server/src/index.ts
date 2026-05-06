@@ -73,6 +73,4 @@ app.get(/^(?!\/api).*$/, (req, res) => {
     res.sendFile(path.join(clientDistPath, "index.html"));
 });
 
-app.listen(PORT,()=>{
-    console.log(`server is running on ${PORT}`)
-})
+export default app;
