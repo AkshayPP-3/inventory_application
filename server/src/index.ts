@@ -3,13 +3,13 @@ import helmet from "helmet";
 import morgan from "morgan";
 import cors from "cors";
 import dotenv from "dotenv"
-import {aj} from "./lib/arcjet"
+import {aj} from "./lib/arcjet.js"
 import productRoutes from "./routes/productRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import swaggerUi from "swagger-ui-express";
-import { specs } from "./docs/swagger";
-import passport from "./config/passport";
-import authRoutes from "./routes/authRoutes";
+import { specs } from "./docs/swagger.js";
+import passport from "./config/passport.js";
+import authRoutes from "./routes/authRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
