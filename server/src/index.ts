@@ -60,6 +60,29 @@ app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
+// Root route: redirect to frontend when available, otherwise show links
+app.get("/", (req, res) => {
+  const frontend = process.env.CLIENT_URL;
+  if (frontend) {
+    return res.redirect(frontend);
+  }
+
+  res.status(200).send(`
+    <html>
+      <head><title>Inventory API</title></head>
+      <body style="font-family:system-ui,Arial,Helvetica,sans-serif;line-height:1.6;padding:24px;">
+        <h1>Inventory Application API</h1>
+        <p>The API is available under <a href="/api">/api</a>.</p>
+        <ul>
+          <li><a href="/api-docs">API Docs (Swagger)</a></li>
+          <li><a href="/api/products">Products (GET /api/products)</a></li>
+        </ul>
+        <p>If you have a frontend deployed, set the <strong>CLIENT_URL</strong> env var to redirect visitors automatically.</p>
+      </body>
+    </html>
+  `);
+});
+
 app.listen(PORT, () => {
   console.log(`server is running on ${PORT}`);
 });
