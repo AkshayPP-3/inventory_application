@@ -4,6 +4,9 @@ import { register, login } from "../controllers/authController.js";
 
 const router = express.Router();
 
+const getFrontendUrl = () =>
+  process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173";
+
 router.post("/register", register);
 router.post("/login", login);
 
@@ -15,11 +18,12 @@ router.get("/google",
 router.get("/google/callback",
   passport.authenticate("google", { session: false }),
   (req, res) => {
+    const frontend = getFrontendUrl();
     const user = req.user as { token: string; email: string };
     if (user && user.token) {
-      res.redirect(`http://localhost:5173/?token=${user.token}&email=${encodeURIComponent(user.email)}`);
+      res.redirect(`${frontend}/?token=${user.token}&email=${encodeURIComponent(user.email)}`);
     } else {
-      res.redirect("http://localhost:5173/?error=auth_failed");
+      res.redirect(`${frontend}/?error=auth_failed`);
     }
   }
 );
@@ -32,11 +36,12 @@ router.get("/github",
 router.get("/github/callback",
   passport.authenticate("github", { session: false }),
   (req, res) => {
+    const frontend = getFrontendUrl();
     const user = req.user as { token: string; email: string };
     if (user && user.token) {
-      res.redirect(`http://localhost:5173/?token=${user.token}&email=${encodeURIComponent(user.email)}`);
+      res.redirect(`${frontend}/?token=${user.token}&email=${encodeURIComponent(user.email)}`);
     } else {
-      res.redirect("http://localhost:5173/?error=auth_failed");
+      res.redirect(`${frontend}/?error=auth_failed`);
     }
   }
 );
