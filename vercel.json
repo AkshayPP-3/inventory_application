@@ -1,11 +1,19 @@
 {
   "version": 2,
-  "buildCommand": "npm install --prefix client && npm run build --prefix client && npm install --prefix server && npm run build --prefix server",
-  "outputDirectory": "server",
+  "builds": [
+    {
+      "src": "server/package.json",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": "client/dist/**"
+      }
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",
       "dest": "server/src/index.ts"
     }
-  ]
+  ],
+  "env": {}
 }
