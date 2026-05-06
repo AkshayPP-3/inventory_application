@@ -69,10 +69,8 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 // Catch-all: serve index.html for any request that doesn't match an API route
-app.get("/:path(.*)", (req, res) => {
-    if (!req.path.startsWith("/api")) {
-        res.sendFile(path.join(clientDistPath, "index.html"));
-    }
+app.get(/^(?!\/api).*$/, (req, res) => {
+    res.sendFile(path.join(clientDistPath, "index.html"));
 });
 
 app.listen(PORT,()=>{
