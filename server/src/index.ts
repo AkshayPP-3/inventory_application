@@ -10,16 +10,10 @@ import swaggerUi from "swagger-ui-express";
 import { specs } from "./docs/swagger.js";
 import passport from "./config/passport.js";
 import authRoutes from "./routes/authRoutes.js";
-import path from "path";
-import { fileURLToPath } from "url";
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const app = express();
-const PORT=process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -29,10 +23,6 @@ app.use(helmet({
 app.use(morgan("dev"));
 app.use(cors());
 app.use(passport.initialize());
-
-// Serve static files from the React app
-const clientDistPath = path.join(__dirname, "../../client/dist");
-app.use(express.static(clientDistPath));
 
 app.use("/api/auth", authRoutes);
 
@@ -67,10 +57,5 @@ app.use(async(req,res,next)=>{
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
-
-// Catch-all: serve index.html for any request that doesn't match an API route
-app.get(/^(?!\/api).*$/, (req, res) => {
-    res.sendFile(path.join(clientDistPath, "index.html"));
-});
 
 export default app;
