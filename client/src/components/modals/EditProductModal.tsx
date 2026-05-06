@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { getApiUrl } from "../../lib/api.js";
 
 interface Category {
   id: number;
@@ -51,8 +52,7 @@ export default function EditProductModal({
 
   const fetchCategories = async () => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-      const response = await fetch(`${apiUrl}/api/categories`);
+      const response = await fetch(getApiUrl("/api/categories"));
       if (response.ok) {
         const data = await response.json();
         setCategories(data);
@@ -96,8 +96,7 @@ export default function EditProductModal({
 
     setLoading(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-      const response = await fetch(`${apiUrl}/api/products/${product.id}`, {
+      const response = await fetch(getApiUrl(`/api/products/${product.id}`), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

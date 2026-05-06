@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { API } from "../../lib/api.js";
 
 interface SignInModalProps {
   isOpen: boolean;
@@ -50,8 +51,7 @@ export default function SignInModal({
 
     setLoading(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL;
-      const response = await fetch(`${apiUrl}/api/auth/login`, {
+      const response = await fetch(`${API}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -81,13 +81,11 @@ export default function SignInModal({
   };
 
   const handleOAuthGoogle = () => {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    window.location.href = `${apiUrl}/api/auth/google`;
+    window.location.href = `${API}/api/auth/google`;
   };
 
   const handleOAuthGithub = () => {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    window.location.href = `${apiUrl}/api/auth/github`;
+    window.location.href = `${API}/api/auth/github`;
   };
 
   if (!isOpen) return null;

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { API } from "../../lib/api.js";
 
 interface SignUpModalProps {
   isOpen: boolean;
@@ -61,8 +62,7 @@ export default function SignUpModal({
 
     setLoading(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL;
-      const response = await fetch(`${apiUrl}/api/auth/register`, {
+      const response = await fetch(`${API}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -92,13 +92,11 @@ export default function SignUpModal({
   };
 
   const handleOAuthGoogle = () => {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    window.location.href = `${apiUrl}/api/auth/google`;
+    window.location.href = `${API}/api/auth/google`;
   };
 
   const handleOAuthGithub = () => {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    window.location.href = `${apiUrl}/api/auth/github`;
+    window.location.href = `${API}/api/auth/github`;
   };
 
   if (!isOpen) return null;

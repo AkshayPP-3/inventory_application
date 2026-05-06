@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getApiUrl } from "../lib/api.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Product {
@@ -546,8 +547,7 @@ function AddCategoryModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
         return;
       }
 
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-      const res = await fetch(`${apiUrl}/api/categories`, {
+      const res = await fetch(getApiUrl("/api/categories"), {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -630,8 +630,7 @@ function EditCategoryModal({
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Unauthorized");
 
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-      const res = await fetch(`${apiUrl}/api/categories/${category.id}`, {
+      const res = await fetch(getApiUrl(`/api/categories/${category.id}`), {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
@@ -852,8 +851,7 @@ export default function CategoriesPage() {
         return;
       }
 
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-      const res = await fetch(`${apiUrl}/api/categories/${id}`, {
+      const res = await fetch(getApiUrl(`/api/categories/${id}`), {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,

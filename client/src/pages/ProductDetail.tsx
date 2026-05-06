@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import EditProductModal from "../components/modals/EditProductModal";
+import { getApiUrl } from "../lib/api.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Product {
@@ -91,11 +92,10 @@ export default function ProductDetail() {
     }
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10000);
 
-      const res = await fetch(`${apiUrl}/api/products/${id}`, {
+      const res = await fetch(getApiUrl(`/api/products/${id}`), {
         signal: controller.signal,
       });
 
@@ -178,8 +178,7 @@ export default function ProductDetail() {
         return;
       }
 
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-      const res = await fetch(`${apiUrl}/api/products/${product.id}`, {
+      const res = await fetch(getApiUrl(`/api/products/${product.id}`), {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import { API } from "../../lib/api.js";
 
 interface AddCategoryModalProps {
   isOpen: boolean;
@@ -47,8 +48,7 @@ export default function AddCategoryModal({
 
     setLoading(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL;
-      const response = await fetch(`${apiUrl}/api/categories`, {
+      const response = await fetch(`${API}/api/categories`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
