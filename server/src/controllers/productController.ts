@@ -1,15 +1,31 @@
 import { prisma } from "../lib/prisma.js";
+import { redis } from "../lib/redis.js";
 import type { Request, Response } from "express";
 
 
 export const getProducts = async(_:Request, res:Response)=>{
     try{
+        // Check cache first
+        const cachedProducts = await redis.get("products");
+        if (cachedProducts) {
+            return res.status(200).json(JSON.parse(cachedProducts));
+        }
+
         const products = await prisma.product.findMany({
             include: {
                 category: true,
             },
             orderBy:{id: "asc"}
         });
+        
+        // Store in cache for 60 seconds
+        await redis.set(
+            "products",
+            JSON.stringify(products),
+            "EX",
+            60
+        );
+        
         res.status(200).json(products)
     }
     catch(error: any){
@@ -48,6 +64,9 @@ export const createProduct = async (req: Request, res: Response) => {
             },
         });
 
+        // Invalidate cache
+        await redis.del("products");
+
         res.status(201).json(product);
     } catch {
         res.status(500).json({ message: "Internal server error" });
@@ -62,6 +81,12 @@ export const getProduct = async (req: Request, res: Response) => {
     }
 
     try {
+        // Check cache first
+        const cachedProduct = await redis.get(`product:${id}`);
+        if (cachedProduct) {
+            return res.status(200).json(JSON.parse(cachedProduct));
+        }
+
         const product = await prisma.product.findUnique({
             where: { id },
             include: {
@@ -73,6 +98,14 @@ export const getProduct = async (req: Request, res: Response) => {
             res.status(404).json({ message: "Product not found" });
             return;
         }
+
+        // Store in cache for 60 seconds
+        await redis.set(
+            `product:${id}`,
+            JSON.stringify(product),
+            "EX",
+            60
+        );
 
         res.status(200).json(product);
     } catch {
@@ -125,6 +158,10 @@ export const updateProduct = async (req: Request, res: Response) => {
             },
         });
 
+        // Invalidate caches
+        await redis.del(`product:${id}`);
+        await redis.del("products");
+
         res.status(200).json(updatedProduct);
     } catch {
         res.status(404).json({ message: "Product not found" });
@@ -142,6 +179,10 @@ export const deleteProduct = async (req: Request, res: Response) => {
         await prisma.product.delete({
             where: { id },
         });
+
+        // Invalidate caches
+        await redis.del(`product:${id}`);
+        await redis.del("products");
 
         res.status(204).send();
     } catch {

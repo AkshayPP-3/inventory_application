@@ -1,7 +1,14 @@
 import { prisma } from "../lib/prisma.js";
+import { redis } from "../lib/redis.js";
 
 export const getCategories = async (req: any, res: any) => {
   try {
+    // Check cache first
+    const cachedCategories = await redis.get("categories");
+    if (cachedCategories) {
+      return res.json(JSON.parse(cachedCategories));
+    }
+
     const categories = await prisma.category.findMany({
       include: {
         products: true,
@@ -10,6 +17,15 @@ export const getCategories = async (req: any, res: any) => {
         createdAt: "desc",
       },
     });
+
+    // Store in cache for 60 seconds
+    await redis.set(
+      "categories",
+      JSON.stringify(categories),
+      "EX",
+      60
+    );
+
     res.json(categories);
   } catch (error: any) {
     console.error("[getCategories Error]", error.message || error);
@@ -23,6 +39,13 @@ export const getCategories = async (req: any, res: any) => {
 export const getCategory = async (req: any, res: any) => {
   try {
     const { id } = req.params;
+
+    // Check cache first
+    const cachedCategory = await redis.get(`category:${id}`);
+    if (cachedCategory) {
+      return res.json(JSON.parse(cachedCategory));
+    }
+
     const category = await prisma.category.findUnique({
       where: { id: parseInt(id) },
       include: {
@@ -33,6 +56,14 @@ export const getCategory = async (req: any, res: any) => {
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
     }
+
+    // Store in cache for 60 seconds
+    await redis.set(
+      `category:${id}`,
+      JSON.stringify(category),
+      "EX",
+      60
+    );
 
     res.json(category);
   } catch (error) {
@@ -67,6 +98,9 @@ export const createCategory = async (req: any, res: any) => {
       },
     });
 
+    // Invalidate cache
+    await redis.del("categories");
+
     res.status(201).json(category);
   } catch (error) {
     res.status(500).json({ message: "Error creating category" });
@@ -100,6 +134,10 @@ export const updateCategory = async (req: any, res: any) => {
       },
     });
 
+    // Invalidate caches
+    await redis.del(`category:${id}`);
+    await redis.del("categories");
+
     res.json(updatedCategory);
   } catch (error) {
     res.status(500).json({ message: "Error updating category" });
@@ -121,6 +159,10 @@ export const deleteCategory = async (req: any, res: any) => {
     await prisma.category.delete({
       where: { id: parseInt(id) },
     });
+
+    // Invalidate caches
+    await redis.del(`category:${id}`);
+    await redis.del("categories");
 
     res.json({ message: "Category deleted successfully" });
   } catch (error) {
