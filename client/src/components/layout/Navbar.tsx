@@ -39,8 +39,13 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userEmail, setUserEmail] = useState("");
+  const initialEmail = localStorage.getItem("userEmail") ?? "";
+  const initialToken = localStorage.getItem("token");
+  const initialProductCountKey = initialEmail ? `productCount_${initialEmail}` : "productCount";
+  const initialProductCount = parseInt(localStorage.getItem(initialProductCountKey) ?? "0", 10);
+
+  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(initialToken));
+  const [userEmail, setUserEmail] = useState(initialEmail);
   const [searchTerm, setSearchTerm] = useState("");
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSignInOpen, setIsSignInOpen] = useState(false);
@@ -48,25 +53,11 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Gamification
-  const [productCount, setProductCount] = useState(0);
+  const [productCount, setProductCount] = useState(initialProductCount);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [levelUpInfo, setLevelUpInfo] = useState({ level: 1 });
-  const prevLevelRef = useRef(1);
+  const prevLevelRef = useRef(getLevelInfo(initialProductCount).level);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
-
-  // ── Bootstrap auth & product count ──────────────────────────────────────────
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsLoggedIn(Boolean(token));
-    const email = localStorage.getItem("userEmail") ?? "";
-    setUserEmail(email);
-
-    // Load productCount tied to this email account
-    const productCountKey = email ? `productCount_${email}` : "productCount";
-    const count = parseInt(localStorage.getItem(productCountKey) ?? "0", 10);
-    setProductCount(count);
-    prevLevelRef.current = getLevelInfo(count).level;
-  }, [isLoggedIn, userEmail]);
 
   // ── Listen for product additions across the app ──────────────────────────────
   // Dispatch a "productAdded" CustomEvent from wherever you add a product
