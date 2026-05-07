@@ -19,10 +19,24 @@ app.use(helmet({
     contentSecurityPolicy: false,
 }));
 app.use(morgan("dev"));
+
+// CORS configuration with support for multiple origins
+const allowedOrigins = [
+  process.env.CLIENT_URL || "https://inventory-application-ten.vercel.app",
+  process.env.FRONTEND_URL || "https://inventory-application-ten.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+
 app.use(
-    cors({
-        origin: process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173",
-        credentials: true,
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     }),
 );
 app.use(passport.initialize());
